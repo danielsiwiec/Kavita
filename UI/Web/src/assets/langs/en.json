@@ -337,7 +337,8 @@
         "regen-warning": "Regenerating your API key will invalidate any existing clients.",
         "no-key": "ERROR - KEY NOT SET",
         "confirm-reset": "This will invalidate any OPDS configurations you have setup. Are you sure you want to continue?",
-        "key-reset": "API Key reset"
+        "key-reset": "API Key reset",
+        "reset": "Reset"
     },
 
     "scrobbling-providers": {
@@ -571,9 +572,9 @@
 
     "library-type-pipe": {
         "book": "Book",
-        "comic": "Comic",
+        "comic": "Comic (Legacy)",
         "manga": "Manga",
-        "comicVine": "Comic Vine",
+        "comicVine": "Comic",
         "image": "Image",
         "lightNovel": "Light Novel"
     },
@@ -1575,10 +1576,6 @@
 
         "download-logs-task": "Download Logs",
         "download-logs-task-desc": "Compiles all log files into a zip and downloads it.",
-
-        "analyze-files-task": "Analyze Files",
-        "analyze-files-task-desc": "Runs a long-running task which will analyze files to generate extension and size. This should only be ran once for the v0.7 release. Not needed if you installed post v0.7.",
-        "analyze-files-task-success": "File analysis has been queued",
 
         "sync-themes-task": "Sync Themes",
         "sync-themes-task-desc": "Synchronize downloaded themes with upstream changes if version matches.",

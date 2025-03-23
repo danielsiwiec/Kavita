@@ -23,6 +23,7 @@ import {Volume} from "../_models/volume";
 import {UtilityService} from "../shared/_services/utility.service";
 import {translate} from "@jsverse/transloco";
 import {ToastrService} from "ngx-toastr";
+import {getIosVersion, isSafari, Version} from "../_helpers/browser";
 
 
 export const CHAPTER_ID_DOESNT_EXIST = -1;
@@ -46,7 +47,8 @@ export class ReaderService {
   // Override background color for reader and restore it onDestroy
   private originalBodyColor!: string;
 
-  private noSleep = new NoSleep();
+
+  private noSleep: NoSleep = new NoSleep();
 
   constructor(private httpClient: HttpClient, @Inject(DOCUMENT) private document: Document) {
       this.accountService.currentUser$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(user => {
@@ -56,17 +58,18 @@ export class ReaderService {
       });
   }
 
+
   enableWakeLock(element?: Element | Document) {
     // Enable wake lock.
     // (must be wrapped in a user input event handler e.g. a mouse or touch handler)
 
     if (!element) element = this.document;
 
-    const enableNoSleepHandler = () => {
+    const enableNoSleepHandler = async () => {
       element!.removeEventListener('click', enableNoSleepHandler, false);
       element!.removeEventListener('touchmove', enableNoSleepHandler, false);
       element!.removeEventListener('mousemove', enableNoSleepHandler, false);
-      this.noSleep!.enable();
+      await this.noSleep.enable();
     };
 
     // Enable wake lock.

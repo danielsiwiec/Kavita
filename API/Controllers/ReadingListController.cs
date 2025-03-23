@@ -9,7 +9,6 @@ using API.DTOs.ReadingLists;
 using API.Extensions;
 using API.Helpers;
 using API.Services;
-using API.SignalR;
 using Kavita.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -39,7 +38,7 @@ public class ReadingListController : BaseApiController
     /// <param name="readingListId"></param>
     /// <returns></returns>
     [HttpGet]
-    public async Task<ActionResult<ReadingListDto?>> GetList(int readingListId)
+    public async Task<ActionResult<ReadingListDto>> GetList(int readingListId)
     {
         var readingList = await _unitOfWork.ReadingListRepository.GetReadingListDtoByIdAsync(readingListId, User.GetUserId());
         if (readingList == null)
@@ -268,7 +267,7 @@ public class ReadingListController : BaseApiController
         var readingList = user.ReadingLists.SingleOrDefault(l => l.Id == dto.ReadingListId);
         if (readingList == null) return BadRequest(await _localizationService.Translate(User.GetUserId(), "reading-list-doesnt-exist"));
         var chapterIdsForSeries =
-            await _unitOfWork.SeriesRepository.GetChapterIdsForSeriesAsync(new [] {dto.SeriesId});
+            await _unitOfWork.SeriesRepository.GetChapterIdsForSeriesAsync([dto.SeriesId]);
 
         // If there are adds, tell tracking this has been modified
         if (await _readingListService.AddChaptersToReadingList(dto.SeriesId, chapterIdsForSeries, readingList))
