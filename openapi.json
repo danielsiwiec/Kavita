@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.4",
   "info": {
-    "title": "Kavita (v0.8.5.20)",
-    "description": "Kavita provides a set of APIs that are authenticated by JWT. JWT token can be copied from local storage. Assume all fields of a payload are required. Built against v0.8.5.20",
+    "title": "Kavita (v0.8.5.21)",
+    "description": "Kavita provides a set of APIs that are authenticated by JWT. JWT token can be copied from local storage. Assume all fields of a payload are required. Built against v0.8.5.21",
     "license": {
       "name": "GPL-3.0",
       "url": "https://github.com/Kareadita/Kavita/blob/develop/LICENSE"
@@ -7706,7 +7706,7 @@
         "tags": [
           "ReadingList"
         ],
-        "summary": "Deletes a list item from the list. Will reorder all item positions afterwards",
+        "summary": "Deletes a list item from the list. Item orders will update as a result.",
         "requestBody": {
           "description": "",
           "content": {
@@ -8002,12 +8002,87 @@
         }
       }
     },
-    "/api/ReadingList/characters": {
+    "/api/ReadingList/people": {
       "get": {
         "tags": [
           "ReadingList"
         ],
-        "summary": "Returns a list of characters associated with the reading list",
+        "summary": "Returns a list of a given role associated with the reading list",
+        "parameters": [
+          {
+            "name": "readingListId",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "description": "PersonRole",
+            "schema": {
+              "enum": [
+                1,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15
+              ],
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PersonDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PersonDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PersonDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ReadingList/all-people": {
+      "get": {
+        "tags": [
+          "ReadingList"
+        ],
+        "summary": "Returns all people in given roles for a reading list",
         "parameters": [
           {
             "name": "readingListId",
@@ -8260,6 +8335,47 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/ReadingList/info": {
+      "get": {
+        "tags": [
+          "ReadingList"
+        ],
+        "summary": "Returns random information about a Reading List",
+        "parameters": [
+          {
+            "name": "readingListId",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadingListInfoDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadingListInfoDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadingListInfoDto"
+                }
+              }
+            }
           }
         }
       }
@@ -15416,6 +15532,10 @@
             "type": "boolean",
             "description": "Manga Reader Option: Should swiping trigger pagination"
           },
+          "allowAutomaticWebtoonReaderDetection": {
+            "type": "boolean",
+            "description": "Manga Reader Option: Allow Automatic Webtoon detection"
+          },
           "bookReaderMargin": {
             "type": "integer",
             "description": "Book Reader Option: Override extra Margin",
@@ -20637,6 +20757,9 @@
         "description": "This is a collection of API.Entities.ReadingListItem which represent individual chapters and an order."
       },
       "ReadingListDto": {
+        "required": [
+          "ageRating"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -20695,6 +20818,61 @@
             "type": "integer",
             "description": "Maximum Month the Reading List starts",
             "format": "int32"
+          },
+          "ageRating": {
+            "enum": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              -1
+            ],
+            "type": "integer",
+            "description": "The highest age rating from all Series within the reading list",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReadingListInfoDto": {
+        "type": "object",
+        "properties": {
+          "pages": {
+            "type": "integer",
+            "description": "Total Pages across all Reading List Items",
+            "format": "int32"
+          },
+          "wordCount": {
+            "type": "integer",
+            "description": "Total Word count across all Reading List Items",
+            "format": "int64"
+          },
+          "isAllEpub": {
+            "type": "boolean",
+            "description": "Are ALL Reading List Items epub"
+          },
+          "minHoursToRead": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxHoursToRead": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "avgHoursToRead": {
+            "type": "number",
+            "format": "float"
           }
         },
         "additionalProperties": false
@@ -20828,7 +21006,8 @@
           "releaseDate": {
             "type": "string",
             "description": "Release Date from Chapter",
-            "format": "date-time"
+            "format": "date-time",
+            "nullable": true
           },
           "readingListId": {
             "type": "integer",
@@ -20838,7 +21017,8 @@
           "lastReadingProgressUtc": {
             "type": "string",
             "description": "The last time a reading list item (underlying chapter) was read by current authenticated user",
-            "format": "date-time"
+            "format": "date-time",
+            "nullable": true
           },
           "fileSize": {
             "type": "integer",
@@ -21254,7 +21434,8 @@
               2,
               3,
               4,
-              5
+              5,
+              6
             ],
             "type": "integer",
             "description": "Which field to sort on",
@@ -24883,6 +25064,7 @@
       },
       "UserPreferencesDto": {
         "required": [
+          "allowAutomaticWebtoonReaderDetection",
           "autoCloseMenu",
           "backgroundColor",
           "blurUnreadSummaries",
@@ -24989,6 +25171,10 @@
           "showScreenHints": {
             "type": "boolean",
             "description": "Manga Reader Option: Show screen hints to the user on some actions, ie) pagination direction change"
+          },
+          "allowAutomaticWebtoonReaderDetection": {
+            "type": "boolean",
+            "description": "Manga Reader Option: Allow Automatic Webtoon detection"
           },
           "bookReaderMargin": {
             "type": "integer",
