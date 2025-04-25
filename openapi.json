@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.4",
   "info": {
-    "title": "Kavita (v0.8.6.1)",
-    "description": "Kavita provides a set of APIs that are authenticated by JWT. JWT token can be copied from local storage. Assume all fields of a payload are required. Built against v0.8.6.1",
+    "title": "Kavita (v0.8.6.3)",
+    "description": "Kavita provides a set of APIs that are authenticated by JWT. JWT token can be copied from local storage. Assume all fields of a payload are required. Built against v0.8.6.3",
     "license": {
       "name": "GPL-3.0",
       "url": "https://github.com/Kareadita/Kavita/blob/develop/LICENSE"
@@ -8983,7 +8983,9 @@
               "enum": [
                 0,
                 1,
-                2
+                2,
+                3,
+                4
               ],
               "type": "integer",
               "description": "Misleading name but is the source of data (like a review coming from AniList)",
@@ -11186,7 +11188,6 @@
           {
             "name": "aniListId",
             "in": "query",
-            "description": "",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -11198,6 +11199,14 @@
             "schema": {
               "type": "integer",
               "format": "int64"
+            }
+          },
+          {
+            "name": "cbrId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
             }
           }
         ],
@@ -15380,7 +15389,9 @@
             "enum": [
               0,
               1,
-              2
+              2,
+              3,
+              4
             ],
             "type": "integer",
             "description": "Who created/manages the list. Non-Kavita lists are not editable by the user, except to promote",
@@ -15488,7 +15499,9 @@
             "enum": [
               0,
               1,
-              2
+              2,
+              3,
+              4
             ],
             "type": "integer",
             "description": "Who created/manages the list. Non-Kavita lists are not editable by the user, except to promote",
@@ -17497,6 +17510,15 @@
           "person": {
             "$ref": "#/components/schemas/Person"
           },
+          "kavitaPlusConnection": {
+            "type": "boolean",
+            "description": "The source of this connection. If not Kavita, this implies Metadata Download linked this and it can be removed between matches"
+          },
+          "orderWeight": {
+            "type": "integer",
+            "description": "A weight that allows lower numbers to sort first",
+            "format": "int32"
+          },
           "role": {
             "enum": [
               1,
@@ -18220,6 +18242,80 @@
         "additionalProperties": false,
         "description": "Represents if Test Email Service URL was successful or not and if any error occured"
       },
+      "ExternalChapterDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "issueNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "criticRating": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "userRating": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "summary": {
+            "type": "string",
+            "nullable": true
+          },
+          "writers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "artists": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "releaseDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "publisher": {
+            "type": "string",
+            "nullable": true
+          },
+          "coverImageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "issueUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "criticReviews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserReviewDto"
+            },
+            "nullable": true
+          },
+          "userReviews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserReviewDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Information about an individual issue/chapter/book from Kavita+"
+      },
       "ExternalRating": {
         "type": "object",
         "properties": {
@@ -18239,7 +18335,9 @@
             "enum": [
               0,
               1,
-              2
+              2,
+              3,
+              4
             ],
             "type": "integer",
             "description": "Misleading name but is the source of data (like a review coming from AniList)",
@@ -18305,7 +18403,9 @@
             "enum": [
               0,
               1,
-              2
+              2,
+              3,
+              4
             ],
             "type": "integer",
             "description": "Misleading name but is the source of data (like a review coming from AniList)",
@@ -18361,7 +18461,9 @@
             "enum": [
               0,
               1,
-              2
+              2,
+              3,
+              4
             ],
             "type": "integer",
             "description": "Misleading name but is the source of data (like a review coming from AniList)",
@@ -18422,6 +18524,11 @@
             "format": "int64",
             "nullable": true
           },
+          "cbrId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
           "synonyms": {
             "type": "array",
             "items": {
@@ -18478,7 +18585,9 @@
             "enum": [
               0,
               1,
-              2
+              2,
+              3,
+              4
             ],
             "type": "integer",
             "description": "Misleading name but is the source of data (like a review coming from AniList)",
@@ -18518,6 +18627,18 @@
             "items": {
               "$ref": "#/components/schemas/SeriesCharacter"
             },
+            "nullable": true
+          },
+          "publisher": {
+            "type": "string",
+            "nullable": true
+          },
+          "chapterDtos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExternalChapterDto"
+            },
+            "description": "Only from CBR for API.Services.Plus.ScrobbleProvider.Cbr. Full metadata about issues",
             "nullable": true
           }
         },
@@ -18562,7 +18683,9 @@
             "enum": [
               0,
               1,
-              2
+              2,
+              3,
+              4
             ],
             "type": "integer",
             "description": "Misleading name but is the source of data (like a review coming from AniList)",
@@ -18620,6 +18743,10 @@
             "format": "int32"
           },
           "aniListId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cbrId": {
             "type": "integer",
             "format": "int32"
           },
@@ -20265,6 +20392,26 @@
             "type": "boolean",
             "description": "Allow setting the cover image"
           },
+          "enableChapterSummary": {
+            "type": "boolean",
+            "description": "Allow Summary to be set within Chapter/Issue"
+          },
+          "enableChapterReleaseDate": {
+            "type": "boolean",
+            "description": "Allow Release Date to be set within Chapter/Issue"
+          },
+          "enableChapterTitle": {
+            "type": "boolean",
+            "description": "Allow Title to be set within Chapter/Issue"
+          },
+          "enableChapterPublisher": {
+            "type": "boolean",
+            "description": "Allow Publisher to be set within Chapter/Issue"
+          },
+          "enableChapterCoverImage": {
+            "type": "boolean",
+            "description": "Allow setting the cover image for the Chapter/Issue"
+          },
           "enableGenres": {
             "type": "boolean"
           },
@@ -20323,7 +20470,12 @@
                 6,
                 7,
                 8,
-                9
+                9,
+                10,
+                11,
+                12,
+                13,
+                14
               ],
               "type": "integer",
               "description": "Represents which field that can be written to as an override when already locked",
@@ -20705,7 +20857,9 @@
             "enum": [
               0,
               1,
-              2
+              2,
+              3,
+              4
             ],
             "type": "integer",
             "description": "Misleading name but is the source of data (like a review coming from AniList)",
@@ -22884,7 +23038,9 @@
             "enum": [
               0,
               1,
-              2
+              2,
+              3,
+              4
             ],
             "type": "integer",
             "description": "Misleading name but is the source of data (like a review coming from AniList)",
@@ -25553,7 +25709,9 @@
             "enum": [
               0,
               1,
-              2
+              2,
+              3,
+              4
             ],
             "type": "integer",
             "description": "If this review is External, which Provider did it come from",
