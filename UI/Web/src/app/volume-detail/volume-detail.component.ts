@@ -8,7 +8,7 @@ import {
   OnInit,
   ViewChild
 } from '@angular/core';
-import {AsyncPipe, DOCUMENT, NgStyle, NgClass, Location} from "@angular/common";
+import {AsyncPipe, DOCUMENT, Location, NgClass, NgStyle} from "@angular/common";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
 import {ImageService} from "../_services/image.service";
 import {SeriesService} from "../_services/series.service";
@@ -54,9 +54,7 @@ import {VirtualScrollerModule} from "@iharbeck/ngx-virtual-scroller";
 import {Action, ActionFactoryService, ActionItem} from "../_services/action-factory.service";
 import {Breakpoint, UtilityService} from "../shared/_services/utility.service";
 import {ChapterCardComponent} from "../cards/chapter-card/chapter-card.component";
-import {
-  EditVolumeModalComponent
-} from "../_single-module/edit-volume-modal/edit-volume-modal.component";
+import {EditVolumeModalComponent} from "../_single-module/edit-volume-modal/edit-volume-modal.component";
 import {Genre} from "../_models/metadata/genre";
 import {Tag} from "../_models/tag";
 import {RelatedTabComponent} from "../_single-module/related-tab/related-tab.component";
@@ -78,6 +76,10 @@ import {EditChapterModalComponent} from "../_single-module/edit-chapter-modal/ed
 import {BulkOperationsComponent} from "../cards/bulk-operations/bulk-operations.component";
 import {CoverImageComponent} from "../_single-module/cover-image/cover-image.component";
 import {DefaultModalOptions} from "../_models/default-modal-options";
+import {UserReview} from "../_single-module/review-card/user-review";
+import {ReviewsComponent} from "../_single-module/reviews/reviews.component";
+import {ExternalRatingComponent} from "../series-detail/_components/external-rating/external-rating.component";
+import {ChapterService} from "../_services/chapter.service";
 
 enum TabID {
 
@@ -119,36 +121,38 @@ interface VolumeCast extends IHasCast {
 
 @Component({
     selector: 'app-volume-detail',
-    imports: [
-        LoadingComponent,
-        NgbNavOutlet,
-        DetailsTabComponent,
-        NgbNavItem,
-        NgbNavLink,
-        NgbNavContent,
-        NgbNav,
-        ReadMoreComponent,
-        AsyncPipe,
-        NgbDropdownItem,
-        NgbDropdownMenu,
-        NgbDropdown,
-        NgbDropdownToggle,
-        EntityTitleComponent,
-        RouterLink,
-        NgbTooltip,
-        NgStyle,
-        NgClass,
-        TranslocoDirective,
-        VirtualScrollerModule,
-        ChapterCardComponent,
-        RelatedTabComponent,
-        BadgeExpanderComponent,
-        MetadataDetailRowComponent,
-        DownloadButtonComponent,
-        CardActionablesComponent,
-        BulkOperationsComponent,
-        CoverImageComponent
-    ],
+  imports: [
+    LoadingComponent,
+    NgbNavOutlet,
+    DetailsTabComponent,
+    NgbNavItem,
+    NgbNavLink,
+    NgbNavContent,
+    NgbNav,
+    ReadMoreComponent,
+    AsyncPipe,
+    NgbDropdownItem,
+    NgbDropdownMenu,
+    NgbDropdown,
+    NgbDropdownToggle,
+    EntityTitleComponent,
+    RouterLink,
+    NgbTooltip,
+    NgStyle,
+    NgClass,
+    TranslocoDirective,
+    VirtualScrollerModule,
+    ChapterCardComponent,
+    RelatedTabComponent,
+    BadgeExpanderComponent,
+    MetadataDetailRowComponent,
+    DownloadButtonComponent,
+    CardActionablesComponent,
+    BulkOperationsComponent,
+    CoverImageComponent,
+    ReviewsComponent,
+    ExternalRatingComponent
+  ],
     templateUrl: './volume-detail.component.html',
     styleUrl: './volume-detail.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -176,6 +180,7 @@ export class VolumeDetailComponent implements OnInit {
   private readonly readingListService = inject(ReadingListService);
   private readonly messageHub = inject(MessageHubService);
   private readonly location = inject(Location);
+  private readonly chapterService = inject(ChapterService);
 
 
   protected readonly AgeRating = AgeRating;
@@ -196,6 +201,13 @@ export class VolumeDetailComponent implements OnInit {
   libraryType: LibraryType | null = null;
   activeTabId = TabID.Chapters;
   readingLists: ReadingList[] = [];
+
+  // Only populated if the volume has exactly one chapter
+  userReviews: Array<UserReview> = [];
+  plusReviews: Array<UserReview> = [];
+  rating: number = 0;
+  hasBeenRated: boolean = false;
+
   mobileSeriesImgBackground: string | undefined;
   downloadInProgress: boolean = false;
 
@@ -374,7 +386,7 @@ export class VolumeDetailComponent implements OnInit {
     forkJoin({
       series: this.seriesService.getSeries(this.seriesId),
       volume: this.volumeService.getVolumeMetadata(this.volumeId),
-      libraryType: this.libraryService.getLibraryType(this.libraryId)
+      libraryType: this.libraryService.getLibraryType(this.libraryId),
     }).subscribe(results => {
 
       if (results.volume === null) {
@@ -385,6 +397,15 @@ export class VolumeDetailComponent implements OnInit {
       this.series = results.series;
       this.volume = results.volume;
       this.libraryType = results.libraryType;
+
+      if (this.volume.chapters.length === 1) {
+        this.chapterService.chapterDetailPlus(this.seriesId, this.volume.chapters[0].id).subscribe(detail => {
+          this.userReviews = detail.reviews.filter(r => !r.isExternal);
+          this.plusReviews = detail.reviews.filter(r => r.isExternal);
+          this.rating = detail.rating;
+          this.hasBeenRated = detail.hasBeenRated;
+        });
+      }
 
       this.themeService.setColorScape(this.volume!.primaryColor, this.volume!.secondaryColor);
 

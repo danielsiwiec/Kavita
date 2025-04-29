@@ -1085,13 +1085,95 @@ public class ExternalMetadataService : IExternalMetadataService
             madeModification = await UpdateChapterPeople(chapter, settings, PersonRole.Writer, potentialMatch.Writers) || madeModification;
 
             madeModification = await UpdateChapterCoverImage(chapter, settings, potentialMatch.CoverImageUrl) || madeModification;
+            madeModification = UpdateExternalChapterMetadata(chapter, settings, potentialMatch) || madeModification;
 
             _unitOfWork.ChapterRepository.Update(chapter);
             await _unitOfWork.CommitAsync();
         }
 
+        return madeModification;
+    }
+
+    private bool UpdateExternalChapterMetadata(Chapter chapter, MetadataSettingsDto settings, ExternalChapterDto metadata)
+    {
+        if (!settings.Enabled) return false;
+
+        if (metadata.UserReviews.Count == 0 && metadata.CriticReviews.Count == 0)
+        {
+            return false;
+        }
+
+        var madeModification = false;
+
+        #region Review
+        _unitOfWork.ExternalSeriesMetadataRepository.Remove(chapter.ExternalReviews);
+        List<ExternalReview> externalReviews = [];
+        externalReviews.AddRange(metadata.CriticReviews
+            .Where(r => !string.IsNullOrWhiteSpace(r.Username) && !string.IsNullOrWhiteSpace(r.Body))
+            .Select(r =>
+            {
+                var review = _mapper.Map<ExternalReview>(r);
+                review.ChapterId = chapter.Id;
+                review.Authority = RatingAuthority.Critic;
+                CleanCbrReview(ref review);
+                return review;
+            }));
+        externalReviews.AddRange(metadata.UserReviews
+            .Where(r => !string.IsNullOrWhiteSpace(r.Username) && !string.IsNullOrWhiteSpace(r.Body))
+            .Select(r =>
+            {
+                var review = _mapper.Map<ExternalReview>(r);
+                review.ChapterId = chapter.Id;
+                review.Authority = RatingAuthority.User;
+                CleanCbrReview(ref review);
+                return review;
+            }));
+
+        chapter.ExternalReviews = externalReviews;
+        madeModification = externalReviews.Count > 0;
+        _logger.LogDebug("Added {Count} reviews for chapter {ChapterId}", externalReviews.Count, chapter.Id);
+        #endregion
+
+        #region Rating
+
+        var averageCriticRating = metadata.CriticReviews.Average(r => r.Rating);
+        var averageUserRating = metadata.UserReviews.Average(r => r.Rating);
+
+        _unitOfWork.ExternalSeriesMetadataRepository.Remove(chapter.ExternalRatings);
+        chapter.ExternalRatings =
+        [
+            new ExternalRating
+            {
+                AverageScore = (int) averageUserRating,
+                Provider = ScrobbleProvider.Cbr,
+                Authority = RatingAuthority.User,
+                ProviderUrl = metadata.IssueUrl,
+            },
+            new ExternalRating
+            {
+                AverageScore = (int) averageCriticRating,
+                Provider = ScrobbleProvider.Cbr,
+                Authority = RatingAuthority.Critic,
+                ProviderUrl = metadata.IssueUrl,
+
+            },
+        ];
+
+        chapter.AverageExternalRating = averageUserRating;
+
+        madeModification = averageUserRating > 0f || averageCriticRating > 0f || madeModification;
+
+        #endregion
 
         return madeModification;
+    }
+
+    private static void CleanCbrReview(ref ExternalReview review)
+    {
+        // CBR has Read Full Review which links to site, but we already have that
+        review.Body = review.Body.Replace("Read Full Review", string.Empty).TrimEnd();
+        review.RawBody = review.RawBody.Replace("Read Full Review", string.Empty).TrimEnd();
+        review.BodyJustText = review.BodyJustText.Replace("Read Full Review", string.Empty).TrimEnd();
     }
 
 
