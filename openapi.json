@@ -2,12 +2,12 @@
   "openapi": "3.0.4",
   "info": {
     "title": "Kavita",
-    "description": "Kavita provides a set of APIs that are authenticated by JWT. JWT token can be copied from local storage. Assume all fields of a payload are required. Built against v0.8.6.16",
+    "description": "Kavita provides a set of APIs that are authenticated by JWT. JWT token can be copied from local storage. Assume all fields of a payload are required. Built against v0.8.6.17",
     "license": {
       "name": "GPL-3.0",
       "url": "https://github.com/Kareadita/Kavita/blob/develop/LICENSE"
     },
-    "version": "0.8.6.16"
+    "version": "0.8.6.17"
   },
   "servers": [
     {
@@ -21341,6 +21341,10 @@
             "type": "boolean",
             "description": "Allow any series within this Library to download metadata."
           },
+          "enableMetadata": {
+            "type": "boolean",
+            "description": "Should Kavita read metadata files from the library"
+          },
           "created": {
             "type": "string",
             "format": "date-time"
@@ -21499,6 +21503,10 @@
           "allowMetadataMatching": {
             "type": "boolean",
             "description": "Allow any series within this Library to download metadata."
+          },
+          "enableMetadata": {
+            "type": "boolean",
+            "description": "Allow Kavita to read metadata (ComicInfo.xml, Epub, PDF)"
           }
         },
         "additionalProperties": false
@@ -26367,6 +26375,7 @@
         "required": [
           "allowMetadataMatching",
           "allowScrobbling",
+          "enableMetadata",
           "excludePatterns",
           "fileGroupTypes",
           "folders",
@@ -26426,6 +26435,9 @@
             "type": "boolean"
           },
           "allowMetadataMatching": {
+            "type": "boolean"
+          },
+          "enableMetadata": {
             "type": "boolean"
           },
           "fileGroupTypes": {
