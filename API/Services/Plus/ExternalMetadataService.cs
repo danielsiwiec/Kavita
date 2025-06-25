@@ -1057,6 +1057,7 @@ public class ExternalMetadataService : IExternalMetadataService
             var status = DeterminePublicationStatus(series, chapters, externalMetadata);
 
             series.Metadata.PublicationStatus = status;
+            series.Metadata.PublicationStatusLocked = true;
             return true;
         }
         catch (Exception ex)
@@ -1188,32 +1189,39 @@ public class ExternalMetadataService : IExternalMetadataService
 
         #region Rating
 
-        var averageCriticRating = metadata.CriticReviews.Average(r => r.Rating);
-        var averageUserRating = metadata.UserReviews.Average(r => r.Rating);
+        // C# can't make the implicit conversation here
+        float? averageCriticRating = metadata.CriticReviews.Count > 0 ? metadata.CriticReviews.Average(r => r.Rating) : null;
+        float? averageUserRating = metadata.UserReviews.Count > 0 ? metadata.UserReviews.Average(r => r.Rating) : null;
 
         var existingRatings = await _unitOfWork.ChapterRepository.GetExternalChapterRatings(chapter.Id);
         _unitOfWork.ExternalSeriesMetadataRepository.Remove(existingRatings);
 
-        chapter.ExternalRatings =
-        [
-            new ExternalRating
+        chapter.ExternalRatings = [];
+
+        if (averageUserRating != null)
+        {
+            chapter.ExternalRatings.Add(new ExternalRating
             {
                 AverageScore = (int) averageUserRating,
                 Provider = ScrobbleProvider.Cbr,
                 Authority = RatingAuthority.User,
                 ProviderUrl = metadata.IssueUrl,
-            },
-            new ExternalRating
+
+            });
+            chapter.AverageExternalRating = averageUserRating.Value;
+        }
+
+        if (averageCriticRating != null)
+        {
+            chapter.ExternalRatings.Add(new ExternalRating
             {
                 AverageScore = (int) averageCriticRating,
                 Provider = ScrobbleProvider.Cbr,
                 Authority = RatingAuthority.Critic,
                 ProviderUrl = metadata.IssueUrl,
 
-            },
-        ];
-
-        chapter.AverageExternalRating = averageUserRating;
+            });
+        }
 
         madeModification = averageUserRating > 0f || averageCriticRating > 0f || madeModification;
 
@@ -1563,16 +1571,16 @@ public class ExternalMetadataService : IExternalMetadataService
             var maxVolume = (int)(nonSpecialVolumes.Count != 0 ? nonSpecialVolumes.Max(v => v.MaxNumber) : 0);
             var maxChapter = (int)chapters.Max(c => c.MaxNumber);
 
-            if (series.Format == MangaFormat.Epub || series.Format == MangaFormat.Pdf && chapters.Count == 1)
+            if (series.Format is MangaFormat.Epub or MangaFormat.Pdf && chapters.Count == 1)
             {
                 series.Metadata.MaxCount = 1;
             }
-            else if (series.Metadata.TotalCount <= 1 && chapters.Count == 1 && chapters[0].IsSpecial)
+            else if (series.Metadata.TotalCount <= 1 && chapters is [{ IsSpecial: true }])
             {
                 series.Metadata.MaxCount = series.Metadata.TotalCount;
             }
             else if ((maxChapter == Parser.DefaultChapterNumber || maxChapter > series.Metadata.TotalCount) &&
-                     maxVolume <= series.Metadata.TotalCount)
+                     maxVolume <= series.Metadata.TotalCount && maxVolume != Parser.DefaultChapterNumber)
             {
                 series.Metadata.MaxCount = maxVolume;
             }
@@ -1593,8 +1601,7 @@ public class ExternalMetadataService : IExternalMetadataService
             {
                 status = PublicationStatus.Ended;
 
-                // Check if all volumes/chapters match the total count
-                if (series.Metadata.MaxCount == series.Metadata.TotalCount && series.Metadata.TotalCount > 0)
+                if (IsSeriesCompleted(series, chapters, externalMetadata, maxVolume))
                 {
                     status = PublicationStatus.Completed;
                 }
@@ -1608,6 +1615,68 @@ public class ExternalMetadataService : IExternalMetadataService
         }
 
         return PublicationStatus.OnGoing;
+    }
+
+    /// <summary>
+    /// Returns true if the series should be marked as completed, checks loosey with chapter and series numbers.
+    /// Respects Specials to reach the required amount.
+    /// </summary>
+    /// <param name="series"></param>
+    /// <param name="chapters"></param>
+    /// <param name="externalMetadata"></param>
+    /// <param name="maxVolumes"></param>
+    /// <returns></returns>
+    /// <remarks>Updates MaxCount and TotalCount if a loosey check is used to set as completed</remarks>
+    public static bool IsSeriesCompleted(Series series, List<Chapter> chapters, ExternalSeriesDetailDto externalMetadata, int maxVolumes)
+    {
+        // A series is completed if exactly the amount is found
+        if (series.Metadata.MaxCount == series.Metadata.TotalCount && series.Metadata.TotalCount > 0)
+        {
+            return true;
+        }
+
+        // If volumes are collected, check if we reach the required volumes by including specials, and decimal volumes
+        //
+        // TODO BUG: If the series has specials, that are not included in the  external count. But you do own them
+        //           This may mark the series as completed pre-maturely
+        // Note: I've currently opted to keep this an equals to prevent the above bug from happening
+        // We *could* change this to >= in the future in case this is reported by users
+        // If we do; test IsSeriesCompleted_Volumes_TooManySpecials needs to be updated
+        if (maxVolumes != Parser.DefaultChapterNumber && externalMetadata.Volumes == series.Volumes.Count)
+        {
+            series.Metadata.MaxCount = series.Volumes.Count;
+            series.Metadata.TotalCount = series.Volumes.Count;
+            return true;
+        }
+
+        // Note: If Kavita has specials, we should be lenient and ignore for the volume check
+        var volumeModifier = series.Volumes.Any(v => v.Name == Parser.SpecialVolume) ? 1 : 0;
+        var modifiedMinVolumeCount = series.Volumes.Count - volumeModifier;
+        if (maxVolumes != Parser.DefaultChapterNumber && externalMetadata.Volumes == modifiedMinVolumeCount)
+        {
+            series.Metadata.MaxCount = modifiedMinVolumeCount;
+            series.Metadata.TotalCount = modifiedMinVolumeCount;
+            return true;
+        }
+
+        // If no volumes are collected, the series is completed if we reach or exceed the external chapters
+        if (maxVolumes == Parser.DefaultChapterNumber && series.Metadata.MaxCount >= externalMetadata.Chapters)
+        {
+            series.Metadata.TotalCount = series.Metadata.MaxCount;
+            return true;
+        }
+
+        // If no volumes are collected, the series is complete if we reach or exceed the external chapters while including
+        // prologues, and extra chapters
+        if (maxVolumes == Parser.DefaultChapterNumber && chapters.Count >= externalMetadata.Chapters)
+        {
+            series.Metadata.TotalCount = chapters.Count;
+            series.Metadata.MaxCount = chapters.Count;
+            return true;
+        }
+
+
+        return false;
     }
 
     private static Dictionary<MetadataFieldType, List<string>> ApplyFieldMappings(IEnumerable<string> values, MetadataFieldType sourceType, List<MetadataFieldMappingDto> mappings)
