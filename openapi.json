@@ -2,12 +2,12 @@
   "openapi": "3.0.4",
   "info": {
     "title": "Kavita",
-    "description": "Kavita provides a set of APIs that are authenticated by JWT. JWT token can be copied from local storage. Assume all fields of a payload are required. Built against v0.8.7.7",
+    "description": "Kavita provides a set of APIs that are authenticated by JWT. JWT token can be copied from local storage. Assume all fields of a payload are required. Built against v0.8.7.12",
     "license": {
       "name": "GPL-3.0",
       "url": "https://github.com/Kareadita/Kavita/blob/develop/LICENSE"
     },
-    "version": "0.8.7.7"
+    "version": "0.8.7.12"
   },
   "servers": [
     {
@@ -966,12 +966,228 @@
         }
       }
     },
+    "/api/Annotation/all": {
+      "get": {
+        "tags": [
+          "Annotation"
+        ],
+        "summary": "Returns the annotations for the given chapter",
+        "parameters": [
+          {
+            "name": "chapterId",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnnotationDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnnotationDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnnotationDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Annotation/{annotationId}": {
+      "get": {
+        "tags": [
+          "Annotation"
+        ],
+        "summary": "Returns the Annotation by Id. User must have access to annotation.",
+        "parameters": [
+          {
+            "name": "annotationId",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Annotation/create": {
+      "post": {
+        "tags": [
+          "Annotation"
+        ],
+        "summary": "Create a new Annotation for the user against a Chapter",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnotationDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnotationDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnotationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Annotation/update": {
+      "post": {
+        "tags": [
+          "Annotation"
+        ],
+        "summary": "Update the modifable fields (Spoiler, highlight slot, and comment) for an annotation",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnotationDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnotationDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnotationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Annotation": {
+      "delete": {
+        "tags": [
+          "Annotation"
+        ],
+        "summary": "Delete the annotation for the user",
+        "parameters": [
+          {
+            "name": "annotationId",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Book/{chapterId}/book-info": {
       "get": {
         "tags": [
           "Book"
         ],
-        "summary": "Retrieves information for the PDF and Epub reader",
+        "summary": "Retrieves information for the PDF and Epub reader. This will cache the file.",
         "description": "This only applies to Epub or PDF files",
         "parameters": [
           {
@@ -2893,6 +3109,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "imageOffset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
           }
         ],
         "responses": {
@@ -3165,24 +3390,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/KoreaderBookDto"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KoreaderBookDto"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/KoreaderBookDto"
-                }
-              }
-            }
+            "description": "OK"
           }
         }
       }
@@ -6958,7 +7166,7 @@
           {
             "name": "includeDimensions",
             "in": "query",
-            "description": "Include file dimensions. Only useful for image based reading",
+            "description": "Include file dimensions. Only useful for image-based reading",
             "schema": {
               "type": "boolean",
               "default": false
@@ -7934,6 +8142,57 @@
         "parameters": [
           {
             "name": "seriesId",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/HourEstimateRangeDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HourEstimateRangeDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HourEstimateRangeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Reader/time-left-for-chapter": {
+      "get": {
+        "tags": [
+          "Reader"
+        ],
+        "summary": "For the current user, returns an estimate on how long it would take to finish reading the chapter.",
+        "description": "For Epubs, this does not check words inside a chapter due to overhead so may not work in all cases.",
+        "parameters": [
+          {
+            "name": "seriesId",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "chapterId",
             "in": "query",
             "description": "",
             "schema": {
@@ -11355,10 +11614,12 @@
         "tags": [
           "Series"
         ],
+        "summary": "All chapter entities will load this data by default. Will not be maintained as of v0.8.1",
         "parameters": [
           {
             "name": "chapterId",
             "in": "query",
+            "description": "",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -11596,6 +11857,25 @@
           "Series"
         ],
         "summary": "Returns series that were recently updated, like adding or removing a chapter",
+        "parameters": [
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "description": "If set to 0, will set as MaxInt",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -16506,6 +16786,104 @@
         },
         "additionalProperties": false
       },
+      "AnnotationDto": {
+        "required": [
+          "chapterId",
+          "libraryId",
+          "ownerUserId",
+          "seriesId",
+          "volumeId",
+          "xPath"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "xPath": {
+            "type": "string",
+            "description": "Starting point of the Highlight",
+            "nullable": true
+          },
+          "endingXPath": {
+            "type": "string",
+            "description": "Ending point of the Highlight. Can be the same as API.DTOs.Reader.AnnotationDto.XPath",
+            "nullable": true
+          },
+          "selectedText": {
+            "type": "string",
+            "description": "The text selected.",
+            "nullable": true
+          },
+          "comment": {
+            "type": "string",
+            "description": "Rich text Comment",
+            "nullable": true
+          },
+          "chapterTitle": {
+            "type": "string",
+            "description": "Title of the TOC Chapter within Epub (not Chapter Entity)",
+            "nullable": true
+          },
+          "context": {
+            "type": "string",
+            "description": "A calculated selection of the surrounding text. This does not update after creation.",
+            "nullable": true
+          },
+          "highlightCount": {
+            "type": "integer",
+            "description": "The number of characters selected",
+            "format": "int32"
+          },
+          "containsSpoiler": {
+            "type": "boolean"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "selectedSlotIndex": {
+            "type": "integer",
+            "description": "Selected Highlight Slot Index [0-4]",
+            "format": "int32"
+          },
+          "chapterId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "volumeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "seriesId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "libraryId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ownerUserId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ownerUsername": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastModifiedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents an annotation on a book"
+      },
       "AppRole": {
         "type": "object",
         "properties": {
@@ -16704,6 +17082,13 @@
             "description": "A list of Table of Contents for a given Chapter",
             "nullable": true
           },
+          "annotations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppUserAnnotation"
+            },
+            "nullable": true
+          },
           "apiKey": {
             "type": "string",
             "description": "An API Key to interact with external services, like OPDS",
@@ -16826,6 +17211,114 @@
         },
         "additionalProperties": false
       },
+      "AppUserAnnotation": {
+        "required": [
+          "appUserId",
+          "chapterId",
+          "libraryId",
+          "seriesId",
+          "volumeId",
+          "xPath"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "xPath": {
+            "type": "string",
+            "description": "Starting point of the Highlight",
+            "nullable": true
+          },
+          "endingXPath": {
+            "type": "string",
+            "description": "Ending point of the Highlight. Can be the same as API.Entities.AppUserAnnotation.XPath",
+            "nullable": true
+          },
+          "selectedText": {
+            "type": "string",
+            "description": "The text selected.",
+            "nullable": true
+          },
+          "comment": {
+            "type": "string",
+            "description": "Rich text Comment",
+            "nullable": true
+          },
+          "highlightCount": {
+            "type": "integer",
+            "description": "The number of characters selected",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "selectedSlotIndex": {
+            "type": "integer",
+            "description": "Selected Highlight Slot Index [0-4]",
+            "format": "int32"
+          },
+          "context": {
+            "type": "string",
+            "description": "A calculated selection of the surrounding text. This does not update after creation.",
+            "nullable": true
+          },
+          "containsSpoiler": {
+            "type": "boolean"
+          },
+          "chapterTitle": {
+            "type": "string",
+            "description": "Title of the TOC Chapter within Epub (not Chapter Entity)",
+            "nullable": true
+          },
+          "libraryId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "seriesId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "volumeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "chapterId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "chapter": {
+            "$ref": "#/components/schemas/Chapter"
+          },
+          "appUserId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "appUser": {
+            "$ref": "#/components/schemas/AppUser"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastModified": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastModifiedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents an annotation in the Epub reader"
+      },
       "AppUserBookmark": {
         "type": "object",
         "properties": {
@@ -16852,6 +17345,21 @@
           "fileName": {
             "type": "string",
             "description": "Filename in the Bookmark Directory",
+            "nullable": true
+          },
+          "imageOffset": {
+            "type": "integer",
+            "description": "Only applicable for Epubs - handles multiple images on one page",
+            "format": "int32"
+          },
+          "xPath": {
+            "type": "string",
+            "description": "Only applicable for Epubs",
+            "nullable": true
+          },
+          "chapterTitle": {
+            "type": "string",
+            "description": "Chapter name (from ToC) or Title (from ComicInfo/PDF)",
             "nullable": true
           },
           "appUserId": {
@@ -17390,6 +17898,14 @@
           "bookReaderImmersiveMode": {
             "type": "boolean",
             "description": "Book Reader Option: A flag that hides the menu-ing system behind a click on the screen. This should be used with tap to paginate, but the app doesn't enforce this."
+          },
+          "bookReaderHighlightSlots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HighlightSlot"
+            },
+            "description": "Book Reader Option: A set of 5 distinct highlight slots with default colors. User can customize. Binds to all Highlight Annotations (API.Entities.AppUserAnnotation.",
+            "nullable": true
           },
           "pdfTheme": {
             "enum": [
@@ -17961,6 +18477,21 @@
             "description": "The title of the bookmark. Defaults to Page {PageNumber} if not set",
             "nullable": true
           },
+          "bookScrollId": {
+            "type": "string",
+            "description": "For Book Reader, represents the nearest passed anchor on the screen that can be used to resume scroll point. If empty, the ToC point is the beginning of the page",
+            "nullable": true
+          },
+          "selectedText": {
+            "type": "string",
+            "description": "Text of the bookmark",
+            "nullable": true
+          },
+          "chapterTitle": {
+            "type": "string",
+            "description": "Title of the Chapter this PToC was created in",
+            "nullable": true
+          },
           "seriesId": {
             "type": "integer",
             "format": "int32"
@@ -17982,11 +18513,6 @@
           "libraryId": {
             "type": "integer",
             "format": "int32"
-          },
-          "bookScrollId": {
-            "type": "string",
-            "description": "For Book Reader, represents the nearest passed anchor on the screen that can be used to resume scroll point. If empty, the ToC point is the beginning of the page",
-            "nullable": true
           },
           "created": {
             "type": "string",
@@ -18168,8 +18694,23 @@
             "type": "integer",
             "format": "int32"
           },
+          "imageOffset": {
+            "type": "integer",
+            "description": "Only applicable for Epubs",
+            "format": "int32"
+          },
+          "xPath": {
+            "type": "string",
+            "description": "Only applicable for Epubs",
+            "nullable": true
+          },
           "series": {
             "$ref": "#/components/schemas/SeriesDto"
+          },
+          "chapterTitle": {
+            "type": "string",
+            "description": "Not required, will be filled out at API before saving to the DB",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -19859,6 +20400,10 @@
           "bookScrollId": {
             "type": "string",
             "nullable": true
+          },
+          "selectedText": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -21489,6 +22034,28 @@
         },
         "additionalProperties": false
       },
+      "HighlightSlot": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": {
+            "type": "string",
+            "description": "Hex representation",
+            "nullable": true
+          },
+          "slotNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "color": {
+            "$ref": "#/components/schemas/RgbaColor"
+          }
+        },
+        "additionalProperties": false
+      },
       "HourEstimateRangeDto": {
         "type": "object",
         "properties": {
@@ -21766,6 +22333,11 @@
             "type": "string",
             "description": "An XPath string read by Koreader to determine the location within the epub.\nEssentially, it is Koreader's equivalent to ProgressDto.BookScrollId.",
             "nullable": true
+          },
+          "timestamp": {
+            "type": "integer",
+            "description": "Last Progress in Unix seconds since epoch",
+            "format": "int64"
           }
         },
         "additionalProperties": false,
@@ -23288,25 +23860,43 @@
       "PersonalToCDto": {
         "required": [
           "chapterId",
+          "id",
           "pageNumber",
           "title"
         ],
         "type": "object",
         "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
           "chapterId": {
             "type": "integer",
             "format": "int32"
           },
           "pageNumber": {
             "type": "integer",
+            "description": "The page to bookmark",
             "format": "int32"
           },
           "title": {
             "type": "string",
+            "description": "The title of the bookmark. Defaults to Page {PageNumber} if not set",
             "nullable": true
           },
           "bookScrollId": {
             "type": "string",
+            "description": "For Book Reader, represents the nearest passed anchor on the screen that can be used to resume scroll point. If empty, the ToC point is the beginning of the page",
+            "nullable": true
+          },
+          "selectedText": {
+            "type": "string",
+            "description": "Text of the bookmark",
+            "nullable": true
+          },
+          "chapterTitle": {
+            "type": "string",
+            "description": "Title of the Chapter this PToC was created in",
             "nullable": true
           }
         },
@@ -24198,6 +24788,28 @@
         },
         "additionalProperties": false
       },
+      "RgbaColor": {
+        "type": "object",
+        "properties": {
+          "r": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "g": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "b": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "a": {
+            "type": "number",
+            "format": "float"
+          }
+        },
+        "additionalProperties": false
+      },
       "ScanFolderDto": {
         "type": "object",
         "properties": {
@@ -24524,6 +25136,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/BookmarkSearchResultDto"
+            },
+            "nullable": true
+          },
+          "annotations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnnotationDto"
             },
             "nullable": true
           }
@@ -27996,6 +28615,7 @@
       "UserPreferencesDto": {
         "required": [
           "blurUnreadSummaries",
+          "bookReaderHighlightSlots",
           "collapseSeriesRelationships",
           "locale",
           "noTransitions",
@@ -28040,6 +28660,12 @@
           },
           "wantToReadSync": {
             "type": "boolean"
+          },
+          "bookReaderHighlightSlots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HighlightSlot"
+            }
           }
         },
         "additionalProperties": false
