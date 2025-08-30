@@ -52,6 +52,8 @@
     font-display: swap;
 }
 
+
+
 :root {
     --br-actionbar-button-text-color: #6c757d;
     --accordion-body-bg-color: black;
@@ -316,7 +318,7 @@ $action-bar-height: 38px;
 // A bunch of resets so books render correctly
 ::ng-deep .book-content {
     & a, & :link {
-        color: blue;
+        color: #8db2e5;
     }
 }
 
@@ -356,6 +358,8 @@ $pagination-opacity: 0;
 //$pagination-opacity: 0.7;
 
 
+
+
 .right {
     position: absolute;
     right: 0px;
@@ -367,6 +371,7 @@ $pagination-opacity: 0;
     border: none !important;
     opacity: 0;
     outline: none;
+    cursor: pointer;
 
     &.immersive {
         top: 0px;
@@ -465,4 +470,27 @@ $pagination-opacity: 0;
             color: white;
         }
     }
+}
+
+
+
+
+.reader-header {
+  border-bottom: 1px solid var(--bs-border-color);
+  background-color: var(--bs-body-bg);
+}
+
+.progress-bar-container {
+  border-top: 1px solid var(--bs-border-color-translucent);
+  background-color: var(--br-actionbar-bg-color); // TODO: BUG: This isn't coloring well
+  max-height: 10px;
+
+  .progress {
+    border-radius: 0;
+    background-color: var(--br-actionbar-bg-color);
+  }
+}
+
+.page-progress-slider {
+  margin: 0;
 }

@@ -40,7 +40,6 @@ import {ScalingOptionPipe} from "../../_pipes/scaling-option.pipe";
 import {SettingItemComponent} from "../../settings/_components/setting-item/setting-item.component";
 import {SettingSwitchComponent} from "../../settings/_components/setting-switch/setting-switch.component";
 import {WritingStylePipe} from "../../_pipes/writing-style.pipe";
-import {ColorPickerDirective} from "ngx-color-picker";
 import {NgbNav, NgbNavContent, NgbNavItem, NgbNavLinkBase, NgbNavOutlet, NgbTooltip} from "@ng-bootstrap/ng-bootstrap";
 import {catchError, filter, of, switchMap} from "rxjs";
 import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
@@ -49,6 +48,11 @@ import {ToastrService} from "ngx-toastr";
 import {ConfirmService} from "../../shared/confirm.service";
 import {WikiLink} from "../../_models/wiki";
 import {BreakpointPipe} from "../../_pipes/breakpoint.pipe";
+import {
+  SettingColorPickerComponent
+} from "../../settings/_components/setting-colour-picker/setting-color-picker.component";
+import {ColorscapeService} from "../../_services/colorscape.service";
+import {Color} from "@iplab/ngx-color-picker";
 
 enum TabId {
   ImageReader = "image-reader",
@@ -79,7 +83,6 @@ enum TabId {
     TitleCasePipe,
     WritingStylePipe,
     NgStyle,
-    ColorPickerDirective,
     NgbNav,
     NgbNavItem,
     NgbNavLinkBase,
@@ -88,6 +91,7 @@ enum TabId {
     LoadingComponent,
     NgbTooltip,
     BreakpointPipe,
+    SettingColorPickerComponent,
   ],
   templateUrl: './manage-reading-profiles.component.html',
   styleUrl: './manage-reading-profiles.component.scss',
@@ -96,6 +100,7 @@ enum TabId {
 export class ManageReadingProfilesComponent implements OnInit {
 
   private readonly readingProfileService = inject(ReadingProfileService);
+  protected readonly colorscapeService = inject(ColorscapeService);
   private readonly cdRef = inject(ChangeDetectorRef);
   private readonly accountService = inject(AccountService);
   private readonly bookService = inject(BookService);
@@ -287,13 +292,13 @@ export class ManageReadingProfilesComponent implements OnInit {
     return data;
   }
 
-  handleBackgroundColorChange(color: string) {
+  handleBackgroundColorChange(color: Color) {
     if (!this.readingProfileForm || !this.selectedProfile) return;
 
     this.readingProfileForm.markAsDirty();
     this.readingProfileForm.markAsTouched();
-    this.selectedProfile.backgroundColor = color;
-    this.readingProfileForm.get('backgroundColor')?.setValue(color);
+    this.selectedProfile.backgroundColor = color.toHexString();
+    this.readingProfileForm.get('backgroundColor')?.setValue(color.toHexString());
     this.cdRef.markForCheck();
   }
 

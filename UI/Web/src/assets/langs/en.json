@@ -188,6 +188,7 @@
         "success-toast": "User preferences updated",
 
         "global-settings-title": "Global Settings",
+        "social-settings-title": "Social Settings",
         "page-layout-mode-label": "Page Layout Mode",
         "page-layout-mode-tooltip": "Show items as cards or list view on Series Detail page.",
         "locale-label": "Locale",
@@ -201,15 +202,15 @@
         "collapse-series-relationships-label": "Collapse Series Relationships",
         "collapse-series-relationships-tooltip": "Should Kavita show Series that have no relationships or is the parent/prequel",
         "share-series-reviews-label": "Share Series Reviews",
-        "share-series-reviews-tooltip": "Should Kavita include your reviews of Series for other users",
+        "share-series-reviews-tooltip": "Allow your reviews to be visible to other users on this server",
 
         "kavitaplus-settings-title": "Kavita+",
         "anilist-scrobbling-label": "AniList Scrobbling",
         "anilist-scrobbling-tooltip": "Allow Kavita to Scrobble (one-way sync) reading progress and ratings to AniList",
         "want-to-read-sync-label": "Want To Read Sync",
-        "want-to-read-sync-tooltip": "Allow Kavita to add items to your Want to Read list based on AniList and MAL series in Pending readlist",
+        "want-to-read-sync-tooltip": "Allow Kavita to add items to your Want to Read list based on AniList and MAL series in Pending read list",
 
-        "clients-opds-alert": "OPDS is not enabled on this server. This will not affect Tachiyomi users.",
+        "clients-opds-alert": "OPDS is not enabled on this server. This will not affect Mihon users.",
         "clients-opds-description": "All 3rd Party clients will either use the API key or the Connection Url below. These are like passwords, keep it private.",
         "clients-api-key-tooltip": "The API key is like a password. Resetting it will invalidate any existing clients.",
         "clients-opds-url-label": "OPDS URL",
@@ -882,10 +883,69 @@
     "book-line-overlay": {
         "copy": "Copy",
         "bookmark": "Bookmark",
+        "annotate": "Annotate",
         "close": "{{common.close}}",
         "required-field": "{{common.required-field}}",
         "bookmark-label": "Bookmark Name",
         "save": "{{common.save}}"
+    },
+
+    "annotation-card": {
+        "page-num": "{{book-reader.page-num-label}}",
+        "contains-spoilers-label": "Spoilers",
+        "view-in-reader-label": "View in Reader"
+    },
+
+    "annotations-tab": {
+        "title": "{{tabs.annotations-tab}}"
+    },
+
+    "view-annotations-drawer": {
+        "title": "{{tabs.annotations-tab}}",
+        "close": "{{common.close}}",
+        "filter-label": "Filter Annotations",
+        "no-data": "{{common.no-data}}"
+    },
+
+    "view-edit-annotation-drawer": {
+        "view-title": "View Annotation",
+        "edit-title": "Edit Annotation",
+        "create-title": "Create Annotation",
+        "create": "Create",
+        "close": "{{common.close}}",
+        "contains-spoilers-label": "{{annotation-card.contains-spoilers-label}}"
+    },
+
+    "view-bookmark-drawer": {
+        "title": "Bookmarks",
+        "close": "{{common.close}}",
+        "no-data": "{{common.no-data}}",
+        "page-num-label": "{{book-reader.page-num-label}}",
+        "load-bookmark": "Load",
+        "image-header": "Image",
+        "text-header": "Text"
+    },
+
+    "page-chapter-label-pipe": {
+        "page-only": "— Page {{pageNumber}}",
+        "full": "— Page {{pageNumber}}, Chapter \"{{chapterTitle}}\""
+    },
+
+    "view-toc-drawer": {
+        "title": "Table of Contents",
+        "close": "{{common.close}}",
+        "toc-header": "Book",
+        "personal-header": "Personal"
+    },
+
+    "epub-setting-drawer": {
+        "title": "Book Settings",
+        "close": "{{common.close}}"
+    },
+
+    "highlight-bar": {
+        "add-new-color-alt": "Add Custom Color",
+        "slot-label": "Highlight slot {{slot}}"
     },
 
     "book-reader": {
@@ -916,16 +976,21 @@
         "previous": "Previous",
 
         "go-to-page": "Go to page",
-        "go-to-page-prompt": "There are {{totalPages}} pages. What page do you want to go to?",
+        "go-to-page-prompt": "There are {{totalPages}} pages. Which page do you want to go to?",
 
-        "go-to-section": "Go to section",
-        "go-to-section-prompt": "There are {{totalSections}} sections. What section do you want to go to?"
+        "page-num-label": "Page {{page}}",
+        "completion-label": "{{percent}} complete",
+
+        "force-selected-one-column": "Layout mode switched to One Column due to insufficient space to render Two Columns"
     },
 
     "personal-table-of-contents": {
         "no-data": "Nothing Bookmarked yet",
-        "page": "Page {{value}}",
-        "delete": "Delete {{bookmarkName}}"
+        "page-title": "Page {{page}}",
+        "chapter-and-page-title": "Chapter {{chapterTitle}}, Page {{page}}",
+        "delete": "Delete {{bookmarkName}}",
+        "no-match": "No Bookmarks match filter",
+        "filter-label": "{{common.filter}}"
     },
 
     "confirm-email": {
@@ -993,6 +1058,7 @@
         "specials-tab": "{{tabs.specials-tab}}",
         "related-tab": "{{tabs.related-tab}}",
         "details-tab": "{{tabs.details-tab}}",
+        "annotations-tab": "{{tabs.annotations-tab}}",
         "info-tab": "{{tabs.info-tab}}",
         "recommendations-tab": "{{tabs.recommendations-tab}}",
         "send-to": "File emailed to {{deviceName}}",
@@ -1925,6 +1991,7 @@
         "chapters": "Chapters",
         "people": "People",
         "tags": "Tags",
+        "annotations": "{{tabs.annotations-tab}}",
         "genres": "{{metadata-fields.genres-title}}",
         "bookmarks": "{{side-nav.bookmarks}}",
         "libraries": "Libraries",
@@ -2893,13 +2960,17 @@
         "scrobble-gen-init": "Enqueued a job to generate scrobble events from past reading history and ratings, syncing them with connected services.",
         "series-bound-to-reading-profile": "Series bound to Reading Profile {{name}}",
         "library-bound-to-reading-profile": "Library bound to Reading Profile {{name}}",
-        "external-match-rate-error": "Kavita ran out of rate looking up {{seriesName}}. Try again in 5 minutes."
+        "external-match-rate-error": "Kavita ran out of rate looking up {{seriesName}}. Try again in 5 minutes.",
+        "confirm-delete-bookmark": "Are you sure you want to delete this Bookmark?",
+        "confirm-delete-annotation": "Are you sure you want to delete this Annotation?"
     },
 
     "read-time-pipe": {
         "less-than-hour": "<1 Hour",
         "hour": "Hour",
-        "hours": "Hours"
+        "hours": "Hours",
+        "hour-left": "Hour left",
+        "hours-left": "Hours left"
     },
 
     "metadata-setting-field-pipe": {
@@ -3163,7 +3234,8 @@
         "devices-tab": "Devices",
         "stats-tab": "Stats",
         "scrobbling-tab": "Scrobbling",
-        "smart-filters-tab": "Smart Filters"
+        "smart-filters-tab": "Smart Filters",
+        "annotations-tab": "Annotations"
     },
 
     "common": {
