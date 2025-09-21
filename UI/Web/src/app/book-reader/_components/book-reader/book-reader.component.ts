@@ -69,6 +69,7 @@ import {environment} from "../../../../environments/environment";
 import {LoadPageEvent} from "../_drawers/view-bookmarks-drawer/view-bookmark-drawer.component";
 import {FontService} from "../../../_services/font.service";
 import afterFrame from "afterframe";
+import {EpubPageCalculationMethod} from "../../../_models/readers/epub-page-calculation-method";
 
 
 interface HistoryPoint {
@@ -158,11 +159,6 @@ export class BookReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly layoutService = inject(LayoutMeasurementService);
   private readonly colorscapeService = inject(ColorscapeService);
   private readonly fontService = inject(FontService);
-
-  protected readonly BookPageLayoutMode = BookPageLayoutMode;
-  protected readonly WritingStyle = WritingStyle;
-  protected readonly ReadingDirection = ReadingDirection;
-  protected readonly PAGING_DIRECTION = PAGING_DIRECTION;
 
   libraryId!: number;
   seriesId!: number;
@@ -385,6 +381,7 @@ export class BookReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly readingDirection = this.readerSettingsService.readingDirection;
   protected readonly writingStyle = this.readerSettingsService.writingStyle;
   protected readonly clickToPaginate = this.readerSettingsService.clickToPaginate;
+  protected readonly pageCalcMode = this.readerSettingsService.pageCalcMode;
 
   protected columnWidth!: Signal<string>;
   protected columnHeight!: Signal<string>;
@@ -962,6 +959,9 @@ export class BookReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Attempt to restore the reading position
     this.snapScrollOnResize();
+    afterFrame(() => {
+      this.injectImageBookmarkIndicators(true);
+    });
   }
 
   /**
@@ -1171,6 +1171,7 @@ export class BookReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     const promptConfig = {...this.confirmService.defaultPrompt};
     promptConfig.header = translate('book-reader.go-to-page');
     promptConfig.content = translate('book-reader.go-to-page-prompt', {totalPages: this.maxPages()});
+    promptConfig.bookReader = true;
 
     const goToPageNum = await this.confirmService.prompt(undefined, promptConfig);
 
@@ -1307,6 +1308,7 @@ export class BookReaderComponent implements OnInit, AfterViewInit, OnDestroy {
           border-radius: 2px;
           background: ${backgroundColor} !important;
           color: ${textColor} !important;
+          font-family: var(--_fa-family) !important;
         `;
 
 
@@ -1681,9 +1683,12 @@ export class BookReaderComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   pageWidth = computed(() => {
     this.windowWidth(); // Ensure re-compute when windows size changes (element clientWidth isn't a signal)
+    this.pageCalcMode();
 
+    console.log('page width recalulated')
+    const calculationMethod = this.pageCalcMode();
     const marginLeft = this.pageStyles()['margin-left'];
-    const columnGapModifier = this.layoutMode() === BookPageLayoutMode.Default ? 0 : 1;
+    const columnGapModifier = this.columnGapModifier();
     if (this.readingSectionElemRef == null) return 0;
 
     const margin = (this.convertVwToPx(parseInt(marginLeft, 10)) * 2);
@@ -1692,7 +1697,25 @@ export class BookReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     // console.log('page size calc, margin: ', margin)
     // console.log('page size calc, col gap: ', ((COLUMN_GAP / 2) * columnGapModifier));
     // console.log("clientWidth", this.readingSectionElemRef.nativeElement.clientWidth, "window", window.innerWidth, "margin", margin, "left", marginLeft)
-    return this.readingSectionElemRef.nativeElement.clientWidth - margin + ((COLUMN_GAP) * columnGapModifier);
+    // console.log('clientWidth: ', this.readingSectionElemRef.nativeElement.clientWidth, 'offsetWidth:', this.readingSectionElemRef.nativeElement.offsetWidth, 'bbox:', this.readingSectionElemRef.nativeElement.getBoundingClientRect().width);
+
+    if (calculationMethod === EpubPageCalculationMethod.Default) {
+      return this.readingSectionElemRef.nativeElement.clientWidth - margin + (((COLUMN_GAP) * columnGapModifier));
+    } else {
+      return this.readingSectionElemRef.nativeElement.clientWidth - margin + (((COLUMN_GAP) * columnGapModifier) + 10);
+    }
+  });
+
+  columnGapModifier = computed(() => {
+    const calculationMethod = this.pageCalcMode();
+    switch(this.layoutMode()) {
+      case BookPageLayoutMode.Default:
+        return 0;
+      case BookPageLayoutMode.Column1:
+        return 1;
+      case BookPageLayoutMode.Column2:
+        return calculationMethod === EpubPageCalculationMethod.Default ? 1 : 1.25;
+    }
   });
 
   pageHeight = computed(() => {
@@ -2436,4 +2459,8 @@ export class BookReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   protected readonly Breakpoint = Breakpoint;
   protected readonly environment = environment;
+  protected readonly BookPageLayoutMode = BookPageLayoutMode;
+  protected readonly WritingStyle = WritingStyle;
+  protected readonly ReadingDirection = ReadingDirection;
+  protected readonly PAGING_DIRECTION = PAGING_DIRECTION;
 }
