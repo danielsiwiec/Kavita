@@ -180,6 +180,12 @@ namespace API.Data.Migrations
                     b.Property<string>("Comment")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("CommentHtml")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CommentPlainText")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("ContainsSpoiler")
                         .HasColumnType("INTEGER");
 
@@ -230,6 +236,8 @@ namespace API.Data.Migrations
                     b.HasIndex("AppUserId");
 
                     b.HasIndex("ChapterId");
+
+                    b.HasIndex("SeriesId");
 
                     b.ToTable("AppUserAnnotation");
                 });
@@ -731,9 +739,6 @@ namespace API.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT")
                         .HasDefaultValue("#000000");
-
-                    b.Property<int>("BookReaderEpubPageCalculationMethod")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("BookReaderFontFamily")
                         .HasColumnType("TEXT");
@@ -2983,9 +2988,17 @@ namespace API.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("API.Entities.Series", "Series")
+                        .WithMany()
+                        .HasForeignKey("SeriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("AppUser");
 
                     b.Navigation("Chapter");
+
+                    b.Navigation("Series");
                 });
 
             modelBuilder.Entity("API.Entities.AppUserBookmark", b =>

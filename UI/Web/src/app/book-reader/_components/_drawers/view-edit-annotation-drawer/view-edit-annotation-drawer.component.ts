@@ -11,11 +11,11 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import {NgbActiveOffcanvas} from "@ng-bootstrap/ng-bootstrap";
+import {NgbActiveModal, NgbActiveOffcanvas, NgbOffcanvas} from "@ng-bootstrap/ng-bootstrap";
 import {AnnotationService} from "../../../../_services/annotation.service";
 import {FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule} from "@angular/forms";
 import {Annotation} from "../../../_models/annotations/annotation";
-import {TranslocoDirective} from "@jsverse/transloco";
+import {translate, TranslocoDirective} from "@jsverse/transloco";
 import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {debounceTime, switchMap} from "rxjs/operators";
 import {of} from "rxjs";
@@ -32,7 +32,11 @@ import {QuillTheme, QuillWrapperComponent} from "../../quill-wrapper/quill-wrapp
 import {ContentChange, QuillViewComponent} from "ngx-quill";
 import {UtcToLocaleDatePipe} from "../../../../_pipes/utc-to-locale-date.pipe";
 import {AccountService} from "../../../../_services/account.service";
-import {OffCanvasResizeComponent, ResizeMode} from "../../../../shared/_components/off-canvas-resize/off-canvas-resize.component";
+import {
+  OffCanvasResizeComponent,
+  ResizeMode
+} from "../../../../shared/_components/off-canvas-resize/off-canvas-resize.component";
+import {ConfirmService} from "../../../../shared/confirm.service";
 
 export enum AnnotationMode {
   View = 0,
@@ -74,6 +78,8 @@ export class ViewEditAnnotationDrawerComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   protected readonly utilityService = inject(UtilityService);
   protected readonly accountService = inject(AccountService);
+  private readonly confirmService = inject(ConfirmService);
+  private readonly offcanvasService = inject(NgbOffcanvas);
 
   @ViewChild('renderTarget', {read: ViewContainerRef}) renderTarget!: ViewContainerRef;
 
@@ -92,6 +98,7 @@ export class ViewEditAnnotationDrawerComponent implements OnInit {
     selectedSlotIndex: FormControl<number>,
   }>;
   annotationNote: object = {};
+  annotationHtml: string = '';
 
   constructor() {
     this.titleColor = computed(() => {
@@ -214,6 +221,7 @@ export class ViewEditAnnotationDrawerComponent implements OnInit {
 
           updatedAnnotation.containsSpoiler = this.formGroup.get('hasSpoiler')!.value;
           updatedAnnotation.comment = JSON.stringify(this.annotationNote);
+          updatedAnnotation.commentHtml = this.annotationHtml;
 
           return this.annotationService.updateAnnotation(updatedAnnotation);
         }),
@@ -238,6 +246,7 @@ export class ViewEditAnnotationDrawerComponent implements OnInit {
 
     highlightAnnotation.containsSpoiler = this.formGroup.get('hasSpoiler')!.value;
     highlightAnnotation.comment = JSON.stringify(this.annotationNote);
+    highlightAnnotation.commentHtml = this.annotationHtml;
     // For create annotation, we have to have this hack
     highlightAnnotation.createdUtc = '0001-01-01T00:00:00Z';
     highlightAnnotation.lastModifiedUtc = '0001-01-01T00:00:00Z'
@@ -273,8 +282,9 @@ export class ViewEditAnnotationDrawerComponent implements OnInit {
     this.activeOffcanvas.close();
   }
 
-  updateContent(event: ContentChange) {
-    this.annotationNote = event.content;
+  updateContent(event: {raw: ContentChange, html?: string}) {
+    this.annotationNote = event.raw.content;
+    this.annotationHtml = event.html ?? '';
   }
 
   private initHighlights() {
@@ -346,4 +356,15 @@ export class ViewEditAnnotationDrawerComponent implements OnInit {
   protected readonly QuillTheme = QuillTheme;
   protected readonly ResizeMode = ResizeMode;
   protected readonly window = window;
+
+  async delete() {
+    const annotation = this.annotation();
+    if (!annotation) return;
+
+    if (!await this.confirmService.confirm(translate('toasts.confirm-delete-annotation'))) return;
+
+    this.annotationService.deleteAnnotation(annotation).subscribe(_ => {
+      this.offcanvasService.dismiss();
+    });
+  }
 }

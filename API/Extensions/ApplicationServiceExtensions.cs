@@ -3,6 +3,7 @@ using API.Constants;
 using API.Controllers;
 using API.Data;
 using API.Helpers;
+using API.Middleware;
 using API.Services;
 using API.Services.Plus;
 using API.Services.Store;
@@ -60,6 +61,8 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IReadingProfileService, ReadingProfileService>();
         services.AddScoped<IKoreaderService, KoreaderService>();
         services.AddScoped<IFontService, FontService>();
+        services.AddScoped<IAnnotationService, AnnotationService>();
+        services.AddScoped<IOpdsService, OpdsService>();
 
         services.AddScoped<IScannerService, ScannerService>();
         services.AddScoped<IProcessSeries, ProcessSeries>();
@@ -89,6 +92,7 @@ public static class ApplicationServiceExtensions
 
         services.AddScoped<IOidcService, OidcService>();
         services.AddScoped<OpdsActionFilterAttribute>();
+        services.AddScoped<OpdsActiveUserMiddlewareAttribute>();
 
         services.AddSqLite();
         services.AddSignalR(opt => opt.EnableDetailedErrors = true);

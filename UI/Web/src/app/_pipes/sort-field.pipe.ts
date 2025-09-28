@@ -3,6 +3,7 @@ import {SortField} from "../_models/metadata/series-filter";
 import {TranslocoService} from "@jsverse/transloco";
 import {ValidFilterEntity} from "../metadata-filter/filter-settings";
 import {PersonSortField} from "../_models/metadata/v2/person-sort-field";
+import {AnnotationsSortField} from "../_models/metadata/v2/annotations-filter";
 
 @Pipe({
   name: 'sortField',
@@ -15,11 +16,26 @@ export class SortFieldPipe implements PipeTransform {
   transform<T extends number>(value: T, entityType: ValidFilterEntity): string {
 
     switch (entityType) {
+      case "annotation":
+        return this.getAnnotationSortFields(value as AnnotationsSortField);
       case 'series':
         return this.seriesSortFields(value as SortField);
       case 'person':
         return this.personSortFields(value as PersonSortField);
 
+    }
+  }
+
+  private getAnnotationSortFields(value: AnnotationsSortField) {
+    switch (value) {
+      case AnnotationsSortField.Color:
+        return this.translocoService.translate('sort-field-pipe.annotation-color');
+      case AnnotationsSortField.LastModified:
+        return this.translocoService.translate('sort-field-pipe.last-modified');
+      case AnnotationsSortField.Owner:
+        return this.translocoService.translate('sort-field-pipe.annotation-owner');
+      case AnnotationsSortField.Created:
+        return this.translocoService.translate('sort-field-pipe.created');
     }
   }
 

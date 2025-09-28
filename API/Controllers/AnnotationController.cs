@@ -1,14 +1,20 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using API.Data;
+using API.DTOs.Metadata.Browse.Requests;
 using API.DTOs.Reader;
 using API.Entities;
 using API.Extensions;
 using API.Helpers;
 using API.Services;
 using API.SignalR;
+using HtmlAgilityPack;
 using Kavita.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -19,18 +25,35 @@ public class AnnotationController : BaseApiController
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<AnnotationController> _logger;
-    private readonly IBookService _bookService;
     private readonly ILocalizationService _localizationService;
     private readonly IEventHub _eventHub;
+    private readonly IAnnotationService _annotationService;
 
     public AnnotationController(IUnitOfWork unitOfWork, ILogger<AnnotationController> logger,
-        IBookService bookService, ILocalizationService localizationService, IEventHub eventHub)
+        ILocalizationService localizationService, IEventHub eventHub, IAnnotationService annotationService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
-        _bookService = bookService;
         _localizationService = localizationService;
         _eventHub = eventHub;
+        _annotationService = annotationService;
+    }
+
+    /// <summary>
+    /// Returns a list of annotations for browsing
+    /// </summary>
+    /// <param name="filter"></param>
+    /// <param name="userParams"></param>
+    /// <returns></returns>
+    [HttpPost("all-filtered")]
+    public async Task<ActionResult<PagedList<AnnotationDto>>> GetAnnotationsForBrowse(BrowseAnnotationFilterDto filter, [FromQuery] UserParams? userParams)
+    {
+        userParams ??= UserParams.Default;
+
+        var list = await _unitOfWork.AnnotationRepository.GetAnnotationDtos(User.GetUserId(), filter, userParams);
+        Response.AddPaginationHeader(list.CurrentPage, list.PageSize, list.TotalCount, list.TotalPages);
+
+        return Ok(list);
     }
 
     /// <summary>
@@ -41,7 +64,6 @@ public class AnnotationController : BaseApiController
     [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<AnnotationDto>>> GetAnnotations(int chapterId)
     {
-
         return Ok(await _unitOfWork.UserRepository.GetAnnotations(User.GetUserId(), chapterId));
     }
 
@@ -77,62 +99,16 @@ public class AnnotationController : BaseApiController
     {
         try
         {
-            if (dto.HighlightCount == 0 || string.IsNullOrWhiteSpace(dto.SelectedText))
-            {
-                return BadRequest(_localizationService.Translate(User.GetUserId(), "invalid-payload"));
-            }
-
-            var chapter = await _unitOfWork.ChapterRepository.GetChapterAsync(dto.ChapterId);
-            if (chapter == null) return BadRequest(await _localizationService.Translate(User.GetUserId(), "chapter-doesnt-exist"));
-
-            var chapterTitle = string.Empty;
-            try
-            {
-                var toc = await _bookService.GenerateTableOfContents(chapter);
-                var pageTocs = BookChapterItemHelper.GetTocForPage(toc, dto.PageNumber);
-                if (pageTocs.Count > 0)
-                {
-                    chapterTitle = pageTocs[0].Title;
-                }
-            }
-            catch (KavitaException)
-            {
-                /* Swallow */
-            }
-
-            var annotation = new AppUserAnnotation()
-            {
-                XPath = dto.XPath,
-                EndingXPath = dto.EndingXPath,
-                ChapterId = dto.ChapterId,
-                SeriesId = dto.SeriesId,
-                VolumeId = dto.VolumeId,
-                LibraryId = dto.LibraryId,
-                HighlightCount = dto.HighlightCount,
-                SelectedText = dto.SelectedText,
-                Comment = dto.Comment,
-                ContainsSpoiler = dto.ContainsSpoiler,
-                PageNumber = dto.PageNumber,
-                SelectedSlotIndex = dto.SelectedSlotIndex,
-                AppUserId = User.GetUserId(),
-                Context = dto.Context,
-                ChapterTitle = chapterTitle
-            };
-
-            _unitOfWork.AnnotationRepository.Attach(annotation);
-            await _unitOfWork.CommitAsync();
-
-            return Ok(await _unitOfWork.AnnotationRepository.GetAnnotationDto(annotation.Id));
+            return Ok(await _annotationService.CreateAnnotation(User.GetUserId(), dto));
         }
-        catch (Exception ex)
+        catch (KavitaException ex)
         {
-            _logger.LogError(ex, "There was an exception when creating an annotation on {ChapterId} - Page {Page}", dto.ChapterId, dto.PageNumber);
-            return BadRequest(_localizationService.Translate(User.GetUserId(), "annotation-failed-create"));
+            return BadRequest(await _localizationService.Translate(User.GetUserId(), ex.Message));
         }
     }
 
     /// <summary>
-    /// Update the modifable fields (Spoiler, highlight slot, and comment) for an annotation
+    /// Update the modifiable fields (Spoiler, highlight slot, and comment) for an annotation
     /// </summary>
     /// <param name="dto"></param>
     /// <returns></returns>
@@ -141,28 +117,12 @@ public class AnnotationController : BaseApiController
     {
         try
         {
-            var annotation = await _unitOfWork.AnnotationRepository.GetAnnotation(dto.Id);
-            if (annotation == null || annotation.AppUserId != User.GetUserId()) return BadRequest();
-
-            annotation.ContainsSpoiler = dto.ContainsSpoiler;
-            annotation.SelectedSlotIndex = dto.SelectedSlotIndex;
-            annotation.Comment = dto.Comment;
-            _unitOfWork.AnnotationRepository.Update(annotation);
-
-            if (!_unitOfWork.HasChanges() || await _unitOfWork.CommitAsync())
-            {
-                await _eventHub.SendMessageToAsync(MessageFactory.AnnotationUpdate, MessageFactory.AnnotationUpdateEvent(dto),
-                    User.GetUserId());
-                return Ok(dto);
-            }
+            return Ok(await _annotationService.UpdateAnnotation(User.GetUserId(), dto));
         }
-        catch (Exception ex)
+        catch (KavitaException ex)
         {
-            _logger.LogError(ex, "There was an exception updating Annotation for Chapter {ChapterId} - Page {PageNumber}",  dto.ChapterId, dto.PageNumber);
-            return BadRequest();
+            return BadRequest(await _localizationService.Translate(User.GetUserId(), ex.Message));
         }
-
-        return Ok();
     }
 
     /// <summary>
@@ -174,10 +134,75 @@ public class AnnotationController : BaseApiController
     public async Task<ActionResult> DeleteAnnotation(int annotationId)
     {
         var annotation = await _unitOfWork.AnnotationRepository.GetAnnotation(annotationId);
-        if (annotation == null || annotation.AppUserId != User.GetUserId()) return BadRequest(_localizationService.Translate(User.GetUserId(), "annotation-delete"));
+        if (annotation == null || annotation.AppUserId != User.GetUserId()) return BadRequest(await _localizationService.Translate(User.GetUserId(), "annotation-delete"));
 
         _unitOfWork.AnnotationRepository.Remove(annotation);
         await _unitOfWork.CommitAsync();
+
         return Ok();
+    }
+
+    /// <summary>
+    /// Removes annotations in bulk. Requires every annotation to be owned by the authenticated user
+    /// </summary>
+    /// <param name="annotationIds"></param>
+    /// <returns></returns>
+    [HttpPost("bulk-delete")]
+    public async Task<ActionResult> DeleteAnnotationsBulk(IList<int> annotationIds)
+    {
+        var userId = User.GetUserId();
+
+        var annotations = await _unitOfWork.AnnotationRepository.GetAnnotations(annotationIds);
+        if (annotations.Any(a => a.AppUserId != userId))
+        {
+            return BadRequest();
+        }
+
+        _unitOfWork.AnnotationRepository.Remove(annotations);
+        await _unitOfWork.CommitAsync();
+
+        return Ok();
+    }
+
+    /// <summary>
+    /// Exports annotations for the given users
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost("export-filter")]
+    public async Task<IActionResult> ExportAnnotationsFilter(BrowseAnnotationFilterDto filter, [FromQuery] UserParams? userParams)
+    {
+        userParams ??= UserParams.Default;
+
+        var list = await _unitOfWork.AnnotationRepository.GetAnnotationDtos(User.GetUserId(), filter, userParams);
+        var annotations = list.Select(a => a.Id).ToList();
+
+        var json = await _annotationService.ExportAnnotations(User.GetUserId(), annotations);
+        if (string.IsNullOrEmpty(json)) return BadRequest();
+
+        var bytes = Encoding.UTF8.GetBytes(json);
+        var fileName = System.Web.HttpUtility.UrlEncode($"annotations_export_{User.GetUserId()}_{DateTime.UtcNow:yyyyMMdd_HHmmss}_filtered");
+        return File(bytes, "application/json", fileName + ".json");
+    }
+
+    /// <summary>
+    /// Exports Annotations for the User
+    /// </summary>
+    /// <param name="annotations">Export annotations with the given ids</param>
+    /// <returns></returns>
+    [HttpPost("export")]
+    public async Task<IActionResult> ExportAnnotations(IList<int>? annotations = null)
+    {
+        var json = await _annotationService.ExportAnnotations(User.GetUserId(), annotations);
+        if (string.IsNullOrEmpty(json)) return BadRequest();
+
+        var bytes = Encoding.UTF8.GetBytes(json);
+
+        var fileName = System.Web.HttpUtility.UrlEncode($"annotations_export_{User.GetUserId()}_{DateTime.UtcNow:yyyyMMdd_HHmmss}");
+        if (annotations != null)
+        {
+            fileName += "_user_selection";
+        }
+
+        return File(bytes, "application/json", fileName + ".json");
     }
 }
