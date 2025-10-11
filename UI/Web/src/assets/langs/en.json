@@ -210,6 +210,8 @@
         "highlight-bar-tooltip": "These colors are shared between all books",
         "colorscape-label": "Use ColorScape",
         "colorscape-tooltip": "Global toggle to enable/disable the dynamic gradient feature. Will override theme settings",
+        "data-saver-label": "Data saver",
+        "data-saver-tooltip": "Minimizes data usage by preventing automatic prefetching (e.g., PDF reader)",
 
         "kavitaplus-settings-title": "Kavita+",
         "anilist-scrobbling-label": "AniList Scrobbling",
@@ -782,7 +784,7 @@
 
     "license": {
         "title": "Kavita+ License",
-        "kavita+-warning": "Kavita+ is separate from Kavita. If you uninstall Kavita without unsubscribing, you will be charged.",
+        "kavita+-warning": "Kavita+ is separate from Kavita. Uninstalling without first cancelling your subscription will continue the billing cycle.",
         "manage": "Manage",
         "invalid-license-tooltip": "If your subscription has ended, you must email support to get a new subscription created",
         "check": "Check",

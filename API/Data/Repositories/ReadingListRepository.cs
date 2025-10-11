@@ -311,7 +311,7 @@ public class ReadingListRepository : IReadingListRepository
             .Where(l => l.AppUserId == userId || (includePromoted &&  l.Promoted ))
             .RestrictAgainstAgeRestriction(user.GetAgeRestriction());
 
-        query = sortByLastModified ? query.OrderByDescending(l => l.LastModified) : query.OrderBy(l => l.NormalizedTitle);
+        query = sortByLastModified ? query.OrderByDescending(l => l.LastModified) : query.OrderBy(l => l.Title);
 
        var finalQuery = query.ProjectTo<ReadingListDto>(_mapper.ConfigurationProvider)
             .AsNoTracking();
@@ -383,11 +383,13 @@ public class ReadingListRepository : IReadingListRepository
                 {
                     ReadingListItem = rli,
                     Chapter = chapter,
+                    FileSize = _context.MangaFile.Where(f => f.ChapterId == chapter.Id).Sum(f => (long?)f.Bytes) ?? 0
                 })
             .Join(_context.Volume, x => x.ReadingListItem.VolumeId, volume => volume.Id, (x, volume) => new
                 {
                     x.ReadingListItem,
                     x.Chapter,
+                    x.FileSize,
                     Volume = volume
                 })
             .Join(_context.Series, x => x.ReadingListItem.SeriesId, series => series.Id, (x, series) => new
@@ -395,6 +397,7 @@ public class ReadingListRepository : IReadingListRepository
                     x.ReadingListItem,
                     x.Chapter,
                     x.Volume,
+                    x.FileSize,
                     Series = series
                 })
             .Where(x => userLibraries.Contains(x.Series.LibraryId))
@@ -407,6 +410,7 @@ public class ReadingListRepository : IReadingListRepository
                     x.Chapter,
                     x.Volume,
                     x.Series,
+                    x.FileSize,
                     ProgressGroup = progressGroup
                 })
             .SelectMany(
@@ -417,6 +421,7 @@ public class ReadingListRepository : IReadingListRepository
                     x.Chapter,
                     x.Volume,
                     x.Series,
+                    x.FileSize,
                     Progress = progress,
                     PagesRead = progress != null ? progress.PagesRead : 0,
                     HasProgress = progress != null,
@@ -447,6 +452,7 @@ public class ReadingListRepository : IReadingListRepository
             Order = item.ReadingListItem.Order,
             SeriesId = item.ReadingListItem.SeriesId,
             SeriesName = item.Series.Name,
+            SeriesSortName = item.Series.SortName,
             SeriesFormat = item.Series.Format,
             PagesTotal = item.Chapter.Pages,
             PagesRead = item.PagesRead,
@@ -459,7 +465,7 @@ public class ReadingListRepository : IReadingListRepository
             LibraryType = library.Type,
             ChapterTitleName = item.Chapter.TitleName,
             LibraryName = library.Name,
-            FileSize = item.Chapter.Files.Sum(f => f.Bytes), // TODO: See if we can put FileSize on the chapter in future
+            FileSize = item.FileSize,
             Summary = item.Chapter.Summary,
             IsSpecial = item.Chapter.IsSpecial,
             LastReadingProgressUtc = item.Progress?.LastModifiedUtc
@@ -513,6 +519,7 @@ public class ReadingListRepository : IReadingListRepository
             (data, s) => new
             {
                 SeriesName = s.Name,
+                SortName = s.SortName,
                 SeriesFormat = s.Format,
                 s.LibraryId,
                 data.ReadingListItem,
@@ -541,6 +548,7 @@ public class ReadingListRepository : IReadingListRepository
                 Order = x.Data.ReadingListItem.Order,
                 SeriesId = x.Data.ReadingListItem.SeriesId,
                 SeriesName = x.Data.SeriesName,
+                SeriesSortName = x.Data.SortName,
                 SeriesFormat = x.Data.SeriesFormat,
                 PagesTotal = x.Data.TotalPages,
                 ChapterNumber = x.Data.ChapterNumber,
