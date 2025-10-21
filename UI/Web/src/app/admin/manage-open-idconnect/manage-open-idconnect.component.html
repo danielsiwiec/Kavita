@@ -29,6 +29,9 @@
                     @if (formControl.errors?.invalidUri) {
                       <div>{{t('invalid-uri')}}</div>
                     }
+                    @if (formControl.errors?.requireTls) {
+                      <div>{{t('tls-required')}}</div>
+                    }
                   </div>
                 }
               </ng-template>
@@ -179,7 +182,7 @@
               </ng-template>
               <ng-template #edit>
                 <select class="form-select" formControlName="defaultAgeRestriction">
-                  <option value="-1">{{t('no-restriction')}}</option>
+                  <option [ngValue]="-1">{{t('no-restriction')}}</option>
                   @for (ageRating of ageRatings(); track ageRating.value) {
                     <option [ngValue]="ageRating.value">{{ageRating.title}}</option>
                   }
