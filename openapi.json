@@ -2,12 +2,12 @@
   "openapi": "3.0.4",
   "info": {
     "title": "Kavita",
-    "description": "Kavita provides a set of APIs that are authenticated by JWT. JWT token can be copied from local storage. Assume all fields of a payload are required. Built against v0.8.8.4",
+    "description": "Kavita provides a set of APIs that are authenticated by JWT. JWT token can be copied from local storage. Assume all fields of a payload are required. Built against v0.8.8.5",
     "license": {
       "name": "GPL-3.0",
       "url": "https://github.com/Kareadita/Kavita/blob/develop/LICENSE"
     },
-    "version": "0.8.8.4"
+    "version": "0.8.8.5"
   },
   "servers": [
     {
@@ -18590,6 +18590,20 @@
         },
         "additionalProperties": false
       },
+      "AppUserOpdsPreferences": {
+        "type": "object",
+        "properties": {
+          "embedProgressIndicator": {
+            "type": "boolean",
+            "description": "Embed Progress Indicator in Title"
+          },
+          "includeContinueFrom": {
+            "type": "boolean",
+            "description": "Insert a \"Continue From X\" entry in OPDS fields to avoid finding your last reading point (Emulates Kavita's Continue button)"
+          }
+        },
+        "additionalProperties": false
+      },
       "AppUserPreferences": {
         "required": [
           "theme"
@@ -18904,6 +18918,9 @@
           },
           "socialPreferences": {
             "$ref": "#/components/schemas/AppUserSocialPreferences"
+          },
+          "opdsPreferences": {
+            "$ref": "#/components/schemas/AppUserOpdsPreferences"
           },
           "appUser": {
             "$ref": "#/components/schemas/AppUser"
@@ -29822,7 +29839,9 @@
           "dataSaver",
           "locale",
           "noTransitions",
+          "opdsPreferences",
           "promptForDownloadSize",
+          "socialPreferences",
           "theme"
         ],
         "type": "object",
@@ -29946,6 +29965,9 @@
           },
           "socialPreferences": {
             "$ref": "#/components/schemas/AppUserSocialPreferences"
+          },
+          "opdsPreferences": {
+            "$ref": "#/components/schemas/AppUserOpdsPreferences"
           }
         },
         "additionalProperties": false
