@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using API.Data;
 using API.Entities.Enums;
@@ -175,8 +176,14 @@ public class AppUserPreferences
     /// <summary>
     /// Enable data saver mode across Kavita, limiting information that is pre-fetched
     /// </summary>
-    /// <remarks>Currenty only integrated into the PDF reader</remarks>
+    /// <remarks>Currently only integrated into the PDF reader</remarks>
     public bool DataSaver { get; set; } = false;
+
+    /// <summary>
+    /// JSON dictionary mappings for custom keybinds across the web app.
+    /// Values are a list of key codes that need to be pressed at the same time for the keybind to be valid
+    /// </summary>
+    public Dictionary<KeyBindTarget, IList<KeyBind>> CustomKeyBinds { get; set; }
 
     #endregion
 
@@ -245,4 +252,14 @@ public class AppUserSocialPreferences
     /// UI Site Global Setting: Enable social features for unknown age ratings
     /// </summary>
     public bool SocialIncludeUnknowns { get; set; } = true;
+}
+
+public sealed record KeyBind
+{
+    public string Key { get; set; }
+    public bool Control { get; set; }
+    public bool Shift { get; set; }
+    public bool Meta { get; set; }
+    public bool Alt { get; set; }
+    public IList<string>? ControllerSequence { get; set; }
 }
