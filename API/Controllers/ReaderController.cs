@@ -1023,4 +1023,41 @@ public class ReaderController : BaseApiController
 
     }
 
+    /// <summary>
+    /// Check if we should prompt the user for rereads for the given series
+    /// </summary>
+    /// <param name="seriesId"></param>
+    /// <returns></returns>
+    [HttpGet("prompt-reread/series")]
+    public async Task<ActionResult<RereadDto>> ShouldPromptForSeriesReRead(int seriesId)
+    {
+        return Ok(await _readerService.CheckSeriesForReRead(UserId, seriesId));
+    }
+
+    /// <summary>
+    /// Check if we should prompt the user for rereads for the given volume
+    /// </summary>
+    /// <param name="libraryId"></param>
+    /// <param name="seriesId"></param>
+    /// <param name="volumeId"></param>
+    /// <returns></returns>
+    [HttpGet("prompt-reread/volume")]
+    public async Task<ActionResult<RereadDto>> ShouldPromptForVolumeReRead(int libraryId, int seriesId, int volumeId)
+    {
+        return Ok(await _readerService.CheckVolumeForReRead(UserId, volumeId, seriesId, libraryId));
+    }
+
+    /// <summary>
+    /// Check if we should prompt the user for rereads for the given chapter
+    /// </summary>
+    /// <param name="libraryId"></param>
+    /// <param name="seriesId"></param>
+    /// <param name="chapterId"></param>
+    /// <returns></returns>
+    [HttpGet("prompt-reread/chapter")]
+    public async Task<ActionResult<RereadDto>> ShouldPromptForChapterReRead(int libraryId, int seriesId, int chapterId)
+    {
+        return Ok(await _readerService.CheckChapterForReRead(UserId, chapterId, seriesId, libraryId));
+    }
+
 }

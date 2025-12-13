@@ -85,7 +85,8 @@
         "opds": "OPDS",
         "image-only": "Images",
         "add-auth-key": "New",
-        "description": "An Auth Key is like a password. Rotating it will invalidate any existing clients."
+        "description": "An Auth Key is like a password. Rotating it will invalidate any existing clients.",
+        "copy-key": "{{common.copy}}"
     },
 
     "create-auth-key": {
@@ -124,6 +125,7 @@
         "required": "{{validation.required-field}}",
         "email": "{{common.email}}",
         "invalid-email-warning": "A non-valid email will block some functionalities of Kavita",
+        "warning-read-only": "Read Only accounts have limited permissions",
         "cancel": "{{common.cancel}}",
         "saving": "Saving…",
         "update": "Update",
@@ -294,8 +296,8 @@
 
     "reread-modal": {
         "title": "Re-Read",
-        "description-full-read": "You've already finished this {{entityType}}! Would you like to start over?",
-        "description-time-passed": "It has been {{days}} days since you've last read this {{entityType}}, need a refresher?",
+        "description-full-read": "You've already finished {{name}}! Would you like to start over?",
+        "description-time-passed": "It has been {{days}} days since you've last read {{name}}, need a refresher?",
         "continue": "Pick up where you left off",
         "reread": "Start Over",
         "cancel": "{{common.cancel}}",
@@ -1268,7 +1270,7 @@
         "no-progress-incognito": "Read incognito",
         "progress": "Continue",
         "progress-incognito": "Continue incognito",
-        "full-read": "Reread",
+        "full-read": "Re-Read",
         "full-read-incognito": "Reread incognito"
     },
 
@@ -2338,16 +2340,6 @@
         "track": "Track"
     },
 
-    "edit-chapter-progress": {
-        "user-header": "User",
-        "page-read-header": "Pages Read",
-        "date-created-header": "Created (UTC)",
-        "date-updated-header": "Last Updated (UTC)",
-        "action-header": "{{common.edit}}",
-        "edit-alt": "{{common.edit}}",
-        "no-data": "{{user-scrobble-history.no-data}}"
-    },
-
     "import-mappings": {
         "import-step": "Import",
         "configure-step": "Configure",
@@ -2674,7 +2666,6 @@
         "field-locked-alt": "{{edit-series-modal.field-locked-alt}}",
         "cover-image-tab": "{{tabs.cover-tab}}",
         "tasks-tab": "{{tabs.tasks-tab}}",
-        "progress-tab": "{{tabs.progress-tab}}",
         "info-tab": "{{tabs.info-tab}}",
         "cover-image-description": "{{edit-series-modal.cover-image-description}}",
         "tags-tab": "{{tabs.tags-tab}}",
@@ -2699,7 +2690,6 @@
         "title": "Edit",
         "close": "{{common.close}}",
         "save": "{{common.save}}",
-        "progress-tab": "{{tabs.progress-tab}}",
         "cover-image-tab": "{{tabs.cover-tab}}",
         "tasks-tab": "{{tabs.tasks-tab}}",
         "info-tab": "{{tabs.info-tab}}",
@@ -2739,7 +2729,7 @@
         "hardcover-tooltip": "https://hardcover.app/authors/{HardcoverId}",
         "asin-label": "ASIN",
         "asin-tooltip": "https://www.amazon.com/stores/J.K.-Rowling/author/{ASIN}",
-        "invalid-asin": "ASIN must be a valid ISBN-10 or ISBN-13 format",
+        "invalid-amazon-code": "ASIN should start with B0 or BT",
         "description-label": "Description",
         "required-field": "{{validation.required-field}}",
         "cover-image-description": "{{edit-series-modal.cover-image-description}}",
@@ -2883,6 +2873,9 @@
     "profile": {
         "title": "{{username}}'s Profile",
         "joined-label": "Joined: {{date}}",
+        "last-read-label": "Last Read: {{date}}",
+        "time-reading-label": "Total Read Time: {{date}}",
+        "avg-reading-per-week-label": "Avg Per Week: {{time}}",
         "stats-title": "A look at {{username}}'s journey through {{libraryName}}",
         "overview-tab": "{{tabs.overview-tab}}",
         "stats-tab": "{{tabs.stats-tab}}",

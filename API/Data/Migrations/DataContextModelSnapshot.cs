@@ -306,7 +306,14 @@ namespace API.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AppUserId");
+                    b.HasIndex("ChapterId");
+
+                    b.HasIndex("SeriesId");
+
+                    b.HasIndex("VolumeId");
+
+                    b.HasIndex("AppUserId", "SeriesId")
+                        .HasDatabaseName("IX_AppUserBookmark_AppUserId_SeriesId");
 
                     b.ToTable("AppUserBookmark");
                 });
@@ -985,6 +992,9 @@ namespace API.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TitleName")
+                        .HasDatabaseName("IX_Chapter_TitleName");
+
                     b.HasIndex("VolumeId");
 
                     b.ToTable("Chapter");
@@ -1418,6 +1428,9 @@ namespace API.Data.Migrations
 
                     b.HasIndex("ChapterId");
 
+                    b.HasIndex("FilePath")
+                        .HasDatabaseName("IX_MangaFile_FilePath");
+
                     b.ToTable("MangaFile");
                 });
 
@@ -1754,11 +1767,17 @@ namespace API.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AgeRating")
+                        .HasDatabaseName("IX_SeriesMetadata_AgeRating");
+
                     b.HasIndex("SeriesId")
                         .IsUnique();
 
                     b.HasIndex("Id", "SeriesId")
                         .IsUnique();
+
+                    b.HasIndex("SeriesId", "AgeRating")
+                        .HasDatabaseName("IX_SeriesMetadata_SeriesId_AgeRating");
 
                     b.ToTable("SeriesMetadata");
                 });
@@ -2629,7 +2648,11 @@ namespace API.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LibraryId");
+                    b.HasIndex("LibraryId")
+                        .HasDatabaseName("IX_Series_LibraryId");
+
+                    b.HasIndex("NormalizedName")
+                        .HasDatabaseName("IX_Series_NormalizedName");
 
                     b.ToTable("Series");
                 });
@@ -3383,7 +3406,31 @@ namespace API.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("API.Entities.Chapter", "Chapter")
+                        .WithMany()
+                        .HasForeignKey("ChapterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("API.Entities.Series", "Series")
+                        .WithMany()
+                        .HasForeignKey("SeriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("API.Entities.Volume", "Volume")
+                        .WithMany()
+                        .HasForeignKey("VolumeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("AppUser");
+
+                    b.Navigation("Chapter");
+
+                    b.Navigation("Series");
+
+                    b.Navigation("Volume");
                 });
 
             modelBuilder.Entity("API.Entities.AppUserCollection", b =>
