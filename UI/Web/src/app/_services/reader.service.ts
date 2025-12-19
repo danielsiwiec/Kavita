@@ -17,19 +17,18 @@ import {AccountService} from './account.service';
 import {PersonalToC} from "../_models/readers/personal-toc";
 import {FilterV2} from "../_models/metadata/v2/filter-v2";
 import NoSleep from 'nosleep.js';
-import {FullProgress} from "../_models/readers/full-progress";
 import {Volume} from "../_models/volume";
 import {UtilityService} from "../shared/_services/utility.service";
 import {translate} from "@jsverse/transloco";
 import {ToastrService} from "ngx-toastr";
 import {FilterField} from "../_models/metadata/v2/filter-field";
 import {ModalService} from "./modal.service";
-import {map, of, switchMap, tap} from "rxjs";
+import {map, Observable, of, switchMap, tap} from "rxjs";
 import {ListSelectModalComponent} from "../shared/_components/list-select-modal/list-select-modal.component";
 import {take, takeUntil} from "rxjs/operators";
 import {SeriesService} from "./series.service";
 import {Series} from "../_models/series";
-import {RereadChapter, RereadPrompt} from "../_models/readers/reread-prompt";
+import {RereadPrompt} from "../_models/readers/reread-prompt";
 
 enum RereadPromptResult {
   Cancel = 0,
@@ -186,10 +185,6 @@ export class ReaderService {
     return this.httpClient.post(this.baseUrl + 'reader/progress', {libraryId, seriesId, volumeId, chapterId, pageNum: page, bookScrollId});
   }
 
-  getAllProgressForChapter(chapterId: number) {
-    return this.httpClient.get<Array<FullProgress>>(this.baseUrl + 'reader/all-chapter-progress?chapterId=' + chapterId);
-  }
-
   markVolumeRead(seriesId: number, volumeId: number) {
     return this.httpClient.post(this.baseUrl + 'reader/mark-volume-read', {seriesId, volumeId});
   }
@@ -243,6 +238,10 @@ export class ReaderService {
 
   getTimeLeftForChapter(seriesId: number, chapterId: number) {
     return this.httpClient.get<HourEstimateRange>(this.baseUrl + `reader/time-left-for-chapter?seriesId=${seriesId}&chapterId=${chapterId}`);
+  }
+
+  getFirstProgressDateForUser(userId: number) {
+    return this.httpClient.get<Date>(this.baseUrl + 'reader/first-progress-date?userId=' + userId);
   }
 
   /**
@@ -606,8 +605,8 @@ export class ReaderService {
     return parentPath ? `${parentPath}/${currentPath}` : currentPath;
   }
 
-  private shouldPromptForSeriesReread(seriesId: number) {
-    return this.httpClient.get<RereadPrompt>(this.baseUrl + `reader/prompt-reread/series?seriesId=${seriesId}`);
+  private shouldPromptForSeriesReread(seriesId: number, libraryId: number) {
+    return this.httpClient.get<RereadPrompt>(this.baseUrl + `reader/prompt-reread/series?seriesId=${seriesId}&libraryId=${libraryId}`);
   }
 
   private shouldPromptForVolumeReread(libraryId: number, seriesId: number, volumeId: number) {
@@ -619,16 +618,20 @@ export class ReaderService {
   }
 
   readSeries(series: Series, incognitoMode: boolean = false) {
-    this.shouldPromptForSeriesReread(series.id).pipe(
+    const fullSeriesReread = this.seriesService.markUnread(series.id);
+
+    this.shouldPromptForSeriesReread(series.id, series.libraryId).pipe(
       switchMap(prompt => this.handlePrompt(prompt, incognitoMode)),
-      tap(res => this.handlePromptResult(res)),
+      tap(res => this.handlePromptResult(res, fullSeriesReread)),
     ).subscribe();
   }
 
   readVolume(libraryId: number, seriesId: number, volume: Volume, incognitoMode: boolean = false) {
+    const fullVolumeReread = this.markVolumeUnread(seriesId, volume.id);
+
     this.shouldPromptForVolumeReread(libraryId, seriesId, volume.id).pipe(
       switchMap(prompt => this.handlePrompt(prompt, incognitoMode)),
-      tap(res => this.handlePromptResult(res)),
+      tap(res => this.handlePromptResult(res, fullVolumeReread)),
     ).subscribe()
   }
 
@@ -644,35 +647,36 @@ export class ReaderService {
     ).subscribe()
   }
 
-  private handlePromptResult({prompt, result}: {prompt: RereadPrompt, result: RereadPromptResult}) {
-    let chapter: RereadChapter;
-    let useIncognitoMode = false;
+  private handlePromptResult({prompt, result}: {prompt: RereadPrompt, result: RereadPromptResult}, markUnreadFull?: Observable<any>) {
+    if (result == RereadPromptResult.Cancel) return;
 
-    switch (result) {
-      case RereadPromptResult.Cancel:
-        return;
-      case RereadPromptResult.Reread:
-        chapter = prompt.chapterOnReread;
-        break;
-      case RereadPromptResult.ReadIncognito:
-        useIncognitoMode = true;
-        chapter = prompt.chapterOnContinue;
-        break;
-      case RereadPromptResult.Continue:
-        chapter = prompt.chapterOnContinue;
-        break;
+    if (result === RereadPromptResult.Continue || result === RereadPromptResult.ReadIncognito) {
+      const chapter = prompt.chapterOnContinue;
+      const useIncognitoMode = result === RereadPromptResult.ReadIncognito;
+
+      this.router.navigate(
+        this.getNavigationArray(chapter.libraryId, chapter.seriesId, chapter.chapterId, chapter.format),
+        { queryParams: { incognitoMode: useIncognitoMode } }
+      ).catch(err => console.error(err));
+      return;
     }
 
-    this.router.navigate(
-      this.getNavigationArray(chapter.libraryId, chapter.seriesId, chapter.chapterId, chapter.format),
-      { queryParams: { incognitoMode: useIncognitoMode } }
-    ).catch(err => console.error(err));
+    const chapter = prompt.chapterOnReread;
+
+    const unRead = (prompt.fullReread && markUnreadFull) ? markUnreadFull : this.saveProgress(
+      chapter.libraryId, chapter.seriesId, chapter.volumeId, chapter.chapterId, 0
+    );
+
+    unRead.subscribe(() => this.router.navigate(
+      this.getNavigationArray(chapter.libraryId, chapter.seriesId, chapter.chapterId, chapter.format)
+    ).catch(err => console.error(err)));
   }
 
   private handlePrompt(prompt: RereadPrompt, incognitoMode: boolean) {
+    if (incognitoMode) return of({prompt: prompt, result: RereadPromptResult.ReadIncognito});
+
     if (!prompt.shouldPrompt) return of({prompt: prompt, result: RereadPromptResult.Continue});
 
-    if (incognitoMode) return of({prompt: prompt, result: RereadPromptResult.ReadIncognito});
 
     const [modal, component] = this.modalService.open(ListSelectModalComponent, {
       centered: true,

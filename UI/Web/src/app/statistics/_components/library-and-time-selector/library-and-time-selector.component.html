@@ -1,23 +1,21 @@
 <ng-container *transloco="let t; prefix:'profile'">
-  <form [formGroup]="filterForm()">
+  <form [formGroup]="filterForm">
     <div class="d-flex flex-wrap gap-2 align-items-center justify-content-center justify-content-md-start">
       <h4 class="mb-0">{{label()}}</h4>
 
-      @if (filterForm().get('libraries'); as control) {
+      @if (filterForm.get('libraries'); as control) {
         @if (!showLibraryTypeahead()) {
           <h4 class="mb-0 lib-selector" (click)="showLibraryTypeahead.set(true)">
-            @if (allLibraries().length === control.value?.length) {
+            @if (allLibraries().length === control?.value?.length) {
               Kavita
             } @else {
-              @for (lib of (control.value ?? []); track lib) {
+              @for (lib of (control?.value ?? []); track lib) {
                 {{libraryName(lib)}}
                 @if (!$last) {,}
               }
             }
           </h4>
-        }
-
-        @if (showLibraryTypeahead() && libraryTypeaheadSettings) {
+        } @else if (libraryTypeaheadSettings) {
           <app-typeahead
             [settings]="libraryTypeaheadSettings"
             (selectedData)="updateSelectedLibraries($event)"
@@ -32,7 +30,7 @@
         }
       }
 
-      <app-smart-time-range-picker (timeRangeUpdate)="updateTimeRange($event)" />
+      <app-smart-time-range-picker (timeRangeUpdate)="updateTimeRange($event)" [startYear]="startYear()" [locale]="locale()" />
     </div>
   </form>
 </ng-container>

@@ -1,25 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using API.Constants;
 using API.Data;
 using API.DTOs;
 using API.DTOs.Filtering;
 using API.DTOs.Metadata;
+using API.DTOs.Progress;
+using API.DTOs.Statistics;
 using API.DTOs.Uploads;
 using API.Entities;
+using API.Entities.Enums;
 using API.Extensions;
 using API.Helpers;
+using API.Middleware;
 using API.Services;
+using API.Services.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using TaskScheduler = API.Services.TaskScheduler;
 
 namespace API.Controllers;
 
 /// <summary>
-/// All APIs here are subject to be removed and are no longer maintained
+/// All APIs here are subject to be removed and are no longer maintained. Will be removed v0.9.0
 /// </summary>
 [Route("api/")]
 public class DeprecatedController : BaseApiController
@@ -28,13 +33,16 @@ public class DeprecatedController : BaseApiController
     private readonly ILocalizationService _localizationService;
     private readonly ITaskScheduler _taskScheduler;
     private readonly ILogger<DeprecatedController> _logger;
+    private readonly IStatisticService _statService;
 
-    public DeprecatedController(IUnitOfWork unitOfWork, ILocalizationService localizationService, ITaskScheduler taskScheduler, ILogger<DeprecatedController> logger)
+    public DeprecatedController(IUnitOfWork unitOfWork, ILocalizationService localizationService, ITaskScheduler taskScheduler,
+        ILogger<DeprecatedController> logger, IStatisticService statService)
     {
         _unitOfWork = unitOfWork;
         _localizationService = localizationService;
         _taskScheduler = taskScheduler;
         _logger = logger;
+        _statService = statService;
     }
 
     /// <summary>
@@ -190,5 +198,75 @@ public class DeprecatedController : BaseApiController
         return BadRequest(await _localizationService.Translate(UserId, "reset-chapter-lock"));
     }
 
+
+    [HttpGet("stats/user/reading-history")]
+    [ResponseCache(CacheProfileName = ResponseCacheProfiles.Statistics)]
+    public async Task<ActionResult<IEnumerable<ReadHistoryEvent>>> GetReadingHistory(int userId)
+    {
+        var user = await _unitOfWork.UserRepository.GetUserByUsernameAsync(Username!);
+        var isAdmin = User.IsInRole(PolicyConstants.AdminRole);
+        if (!isAdmin && userId != user!.Id) return BadRequest();
+
+        return Ok(await _statService.GetReadingHistory(userId));
+    }
+
+    [Authorize(PolicyGroups.AdminPolicy)]
+    [HttpGet("stats/server/top/years")]
+    [ResponseCache(CacheProfileName = ResponseCacheProfiles.Statistics)]
+    public async Task<ActionResult<IEnumerable<StatCount<int>>>> GetTopYears()
+    {
+        return Ok(await _statService.GetTopYears());
+    }
+
+    /// <summary>
+    /// Returns reading history events for a give or all users, broken up by day, and format
+    /// </summary>
+    /// <param name="userId">If 0, defaults to all users, else just userId</param>
+    /// <param name="days">If 0, defaults to all time, else just those days asked for</param>
+    /// <returns></returns>
+    [HttpGet("stats/reading-count-by-day")]
+    [ResponseCache(CacheProfileName = ResponseCacheProfiles.Statistics)]
+    public async Task<ActionResult<IEnumerable<StatCountWithFormat<DateTime>>>> ReadCountByDay(int userId = 0, int days = 0)
+    {
+        var user = await _unitOfWork.UserRepository.GetUserByUsernameAsync(Username!);
+        var isAdmin = User.IsInRole(PolicyConstants.AdminRole);
+        if (!isAdmin && userId != user!.Id) return BadRequest();
+
+        return Ok(await _statService.ReadCountByDay(userId, days));
+    }
+
+    [Authorize(PolicyGroups.AdminPolicy)]
+    [HttpGet("server/count/year")]
+    [ResponseCache(CacheProfileName = ResponseCacheProfiles.Statistics)]
+    public async Task<ActionResult<IEnumerable<StatCount<int>>>> GetYearStatistics()
+    {
+        return Ok(await _statService.GetYearCount());
+    }
+
+    /// <summary>
+    /// Returns users with the top reads in the server
+    /// </summary>
+    /// <param name="days"></param>
+    /// <returns></returns>
+    [Authorize(PolicyGroups.AdminPolicy)]
+    [HttpGet("stats/server/top/users")]
+    [ResponseCache(CacheProfileName = ResponseCacheProfiles.Statistics)]
+    public async Task<ActionResult<IEnumerable<TopReadDto>>> GetTopReads(int days = 0)
+    {
+        return Ok(await _statService.GetTopUsers(days));
+    }
+
+    /// <summary>
+    /// Get all progress events for a given chapter
+    /// </summary>
+    /// <param name="chapterId"></param>
+    /// <returns></returns>
+    [HttpGet("reader/all-chapter-progress")]
+    public async Task<ActionResult<IEnumerable<FullProgressDto>>> GetProgressForChapter(int chapterId)
+    {
+        var userId = User.IsInRole(PolicyConstants.AdminRole) ? 0 : UserId;
+        return Ok(await _unitOfWork.AppUserProgressRepository.GetUserProgressForChapter(chapterId, userId));
+
+    }
 
 }

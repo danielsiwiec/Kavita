@@ -18,7 +18,7 @@ namespace API.Data.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.0");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.1");
 
             modelBuilder.Entity("API.Entities.AppRole", b =>
                 {
@@ -2212,6 +2212,9 @@ namespace API.Data.Migrations
                     b.Property<DateTime?>("EndTimeUtc")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Format")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("LibraryId")
                         .HasColumnType("INTEGER");
 
@@ -2284,7 +2287,14 @@ namespace API.Data.Migrations
 
                     b.HasIndex("ChapterId");
 
+                    b.HasIndex("LibraryId");
+
                     b.HasIndex("SeriesId");
+
+                    b.HasIndex("VolumeId");
+
+                    b.HasIndex("StartTimeUtc", "LibraryId")
+                        .HasDatabaseName("IX_ActivityData_StartTimeUtc_LibraryId");
 
                     b.ToTable("AppUserReadingSessionActivityData");
                 });
@@ -3917,17 +3927,33 @@ namespace API.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("API.Entities.Library", "Library")
+                        .WithMany()
+                        .HasForeignKey("LibraryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("API.Entities.Series", "Series")
                         .WithMany()
                         .HasForeignKey("SeriesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("API.Entities.Volume", "Volume")
+                        .WithMany()
+                        .HasForeignKey("VolumeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Chapter");
+
+                    b.Navigation("Library");
 
                     b.Navigation("ReadingSession");
 
                     b.Navigation("Series");
+
+                    b.Navigation("Volume");
                 });
 
             modelBuilder.Entity("API.Entities.ReadingList", b =>
