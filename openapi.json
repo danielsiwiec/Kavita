@@ -3150,6 +3150,292 @@
         "deprecated": true
       }
     },
+    "/api/stats/user/reading-history": {
+      "get": {
+        "tags": [
+          "Deprecated"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReadHistoryEvent"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReadHistoryEvent"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReadHistoryEvent"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/stats/server/top/years": {
+      "get": {
+        "tags": [
+          "Deprecated"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Int32StatCount"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Int32StatCount"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Int32StatCount"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/stats/reading-count-by-day": {
+      "get": {
+        "tags": [
+          "Deprecated"
+        ],
+        "summary": "Returns reading history events for a give or all users, broken up by day, and format",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "If 0, defaults to all users, else just userId",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "description": "If 0, defaults to all time, else just those days asked for",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DateTimeStatCountWithFormat"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DateTimeStatCountWithFormat"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DateTimeStatCountWithFormat"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/server/count/year": {
+      "get": {
+        "tags": [
+          "Deprecated"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Int32StatCount"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Int32StatCount"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Int32StatCount"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/stats/server/top/users": {
+      "get": {
+        "tags": [
+          "Deprecated"
+        ],
+        "summary": "Returns users with the top reads in the server",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TopReadDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TopReadDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TopReadDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reader/all-chapter-progress": {
+      "get": {
+        "tags": [
+          "Deprecated"
+        ],
+        "summary": "Get all progress events for a given chapter",
+        "parameters": [
+          {
+            "name": "chapterId",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FullProgressDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FullProgressDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FullProgressDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Device/create": {
       "post": {
         "tags": [
@@ -9917,56 +10203,6 @@
         }
       }
     },
-    "/api/Reader/all-chapter-progress": {
-      "get": {
-        "tags": [
-          "Reader"
-        ],
-        "summary": "Get all progress events for a given chapter",
-        "parameters": [
-          {
-            "name": "chapterId",
-            "in": "query",
-            "description": "",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/FullProgressDto"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/FullProgressDto"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/FullProgressDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Reader/prompt-reread/series": {
       "get": {
         "tags": [
@@ -9978,6 +10214,14 @@
             "name": "seriesId",
             "in": "query",
             "description": "",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "libraryId",
+            "in": "query",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -10119,6 +10363,48 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RereadDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Reader/first-progress-date": {
+      "get": {
+        "tags": [
+          "Reader"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
                 }
               }
             }
@@ -15528,39 +15814,6 @@
         }
       }
     },
-    "/api/Settings/first-install-date": {
-      "get": {
-        "tags": [
-          "Settings"
-        ],
-        "summary": "Return the initial installDate of the server",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "format": "date-time"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "date-time"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "date-time"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Settings/is-valid-authority": {
       "post": {
         "tags": [
@@ -15633,44 +15886,6 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ServerStatisticsDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Stats/server/count/year": {
-      "get": {
-        "tags": [
-          "Stats"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Int32StatCount"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Int32StatCount"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Int32StatCount"
-                  }
                 }
               }
             }
@@ -15754,7 +15969,7 @@
         }
       }
     },
-    "/api/Stats/server/top/years": {
+    "/api/Stats/popular-decades": {
       "get": {
         "tags": [
           "Stats"
@@ -15767,7 +15982,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Int32StatCount"
+                    "$ref": "#/components/schemas/StatBucketDto"
                   }
                 }
               },
@@ -15775,7 +15990,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Int32StatCount"
+                    "$ref": "#/components/schemas/StatBucketDto"
                   }
                 }
               },
@@ -15783,7 +15998,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Int32StatCount"
+                    "$ref": "#/components/schemas/StatBucketDto"
                   }
                 }
               }
@@ -15792,21 +16007,266 @@
         }
       }
     },
-    "/api/Stats/server/top/users": {
+    "/api/Stats/popular-libraries": {
       "get": {
         "tags": [
           "Stats"
         ],
-        "summary": "Returns users with the top reads in the server",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LibraryDtoStatCount"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LibraryDtoStatCount"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LibraryDtoStatCount"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Stats/popular-series": {
+      "get": {
+        "tags": [
+          "Stats"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDtoStatCount"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDtoStatCount"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDtoStatCount"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Stats/popular-genres": {
+      "get": {
+        "tags": [
+          "Stats"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GenreTagDtoStatCount"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GenreTagDtoStatCount"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GenreTagDtoStatCount"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Stats/popular-tags": {
+      "get": {
+        "tags": [
+          "Stats"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TagDtoStatCount"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TagDtoStatCount"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TagDtoStatCount"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Stats/popular-authors": {
+      "get": {
+        "tags": [
+          "Stats"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PersonDtoStatCount"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PersonDtoStatCount"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PersonDtoStatCount"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Stats/popular-artists": {
+      "get": {
+        "tags": [
+          "Stats"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PersonDtoStatCount"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PersonDtoStatCount"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PersonDtoStatCount"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Stats/most-active-users": {
+      "get": {
+        "tags": [
+          "Stats"
+        ],
+        "summary": "Top 5 most active readers for the given timeframe",
         "parameters": [
           {
-            "name": "days",
+            "name": "StartDate",
             "in": "query",
-            "description": "",
             "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 0
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "EndDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "Libraries",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int32"
+              }
             }
           }
         ],
@@ -15904,7 +16364,7 @@
         }
       }
     },
-    "/api/Stats/reading-count-by-day": {
+    "/api/Stats/reading-counts": {
       "get": {
         "tags": [
           "Stats"
@@ -15912,23 +16372,39 @@
         "summary": "Returns reading history events for a give or all users, broken up by day, and format",
         "parameters": [
           {
+            "name": "StartDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "EndDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "Libraries",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          },
+          {
             "name": "userId",
             "in": "query",
             "description": "If 0, defaults to all users, else just userId",
             "schema": {
               "type": "integer",
-              "format": "int32",
-              "default": 0
-            }
-          },
-          {
-            "name": "days",
-            "in": "query",
-            "description": "If 0, defaults to all time, else just those days asked for",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 0
+              "format": "int32"
             }
           }
         ],
@@ -15940,7 +16416,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/DateTimePagesReadOnADayCount"
+                    "$ref": "#/components/schemas/DateTimeStatCountWithFormat"
                   }
                 }
               },
@@ -15948,7 +16424,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/DateTimePagesReadOnADayCount"
+                    "$ref": "#/components/schemas/DateTimeStatCountWithFormat"
                   }
                 }
               },
@@ -15956,7 +16432,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/DateTimePagesReadOnADayCount"
+                    "$ref": "#/components/schemas/DateTimeStatCountWithFormat"
                   }
                 }
               }
@@ -16006,54 +16482,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/DayOfWeekStatCount"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Stats/user/reading-history": {
-      "get": {
-        "tags": [
-          "Stats"
-        ],
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ReadHistoryEvent"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ReadHistoryEvent"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ReadHistoryEvent"
                   }
                 }
               }
@@ -16156,6 +16584,44 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/Int32StatCount"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Stats/files-added-over-time": {
+      "get": {
+        "tags": [
+          "Stats"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DateTimeStatCountWithFormat"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DateTimeStatCountWithFormat"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DateTimeStatCountWithFormat"
                   }
                 }
               }
@@ -16312,81 +16778,7 @@
         "tags": [
           "Stats"
         ],
-        "parameters": [
-          {
-            "name": "StartDate",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "date-time"
-            }
-          },
-          {
-            "name": "EndDate",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "date-time"
-            }
-          },
-          {
-            "name": "Libraries",
-            "in": "query",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "format": "int32"
-              }
-            }
-          },
-          {
-            "name": "userId",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "year",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReadingPaceDto"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReadingPaceDto"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReadingPaceDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Stats/preferred-format": {
-      "get": {
-        "tags": [
-          "Stats"
-        ],
-        "summary": "Returns each format type read",
+        "summary": "",
         "parameters": [
           {
             "name": "StartDate",
@@ -16423,6 +16815,23 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "booksOnly",
+            "in": "query",
+            "description": "This API only returns for Books (epub/pdf) and Comics (Image/Archive) regardless of Library type",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -16431,26 +16840,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/MangaFormatStatCount"
-                  }
+                  "$ref": "#/components/schemas/ReadingPaceDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/MangaFormatStatCount"
-                  }
+                  "$ref": "#/components/schemas/ReadingPaceDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/MangaFormatStatCount"
-                  }
+                  "$ref": "#/components/schemas/ReadingPaceDto"
                 }
               }
             }
@@ -21361,7 +21761,7 @@
         },
         "additionalProperties": false
       },
-      "DateTimePagesReadOnADayCount": {
+      "DateTimeStatCountWithFormat": {
         "type": "object",
         "properties": {
           "value": {
@@ -22549,6 +22949,19 @@
         },
         "additionalProperties": false
       },
+      "GenreTagDtoStatCount": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "$ref": "#/components/schemas/GenreTagDto"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
       "HighlightSlot": {
         "type": "object",
         "properties": {
@@ -23034,7 +23447,7 @@
         },
         "additionalProperties": false
       },
-      "LibraryDtoICount": {
+      "LibraryDtoStatCount": {
         "type": "object",
         "properties": {
           "value": {
@@ -24045,6 +24458,19 @@
             },
             "description": "All roles as if returned by the /api/person/roles endpoint",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PersonDtoStatCount": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "$ref": "#/components/schemas/PersonDto"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64"
           }
         },
         "additionalProperties": false
@@ -25102,6 +25528,10 @@
             "type": "integer",
             "format": "int32"
           },
+          "volumeId": {
+            "type": "integer",
+            "format": "int32"
+          },
           "chapterId": {
             "type": "integer",
             "format": "int32"
@@ -25138,6 +25568,10 @@
           "timePrompt": {
             "type": "boolean",
             "description": "If the prompt is triggered because of time, false when triggered because of fully read"
+          },
+          "fullReread": {
+            "type": "boolean",
+            "description": "True if the entity is not atomic and will be fully reread on reread (I.e. rereading a series on volume)"
           },
           "daysSinceLastRead": {
             "type": "integer",
@@ -25823,7 +26257,7 @@
         },
         "additionalProperties": false
       },
-      "SeriesDtoICount": {
+      "SeriesDtoStatCount": {
         "type": "object",
         "properties": {
           "value": {
@@ -26400,43 +26834,6 @@
           "totalReadingTime": {
             "type": "integer",
             "format": "int64"
-          },
-          "mostReadSeries": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SeriesDtoICount"
-            },
-            "nullable": true
-          },
-          "mostPopularSeries": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SeriesDtoICount"
-            },
-            "description": "Total users who have started/reading/read per series",
-            "nullable": true
-          },
-          "mostActiveUsers": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserDtoICount"
-            },
-            "nullable": true
-          },
-          "mostActiveLibraries": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LibraryDtoICount"
-            },
-            "nullable": true
-          },
-          "recentlyRead": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SeriesDto"
-            },
-            "description": "Last 5 Series read",
-            "nullable": true
           }
         },
         "additionalProperties": false
@@ -26508,20 +26905,6 @@
           },
           "library": {
             "$ref": "#/components/schemas/LibraryDto"
-          }
-        },
-        "additionalProperties": false
-      },
-      "SingleStatCount": {
-        "type": "object",
-        "properties": {
-          "value": {
-            "type": "number",
-            "format": "float"
-          },
-          "count": {
-            "type": "integer",
-            "format": "int64"
           }
         },
         "additionalProperties": false
@@ -27175,6 +27558,19 @@
           "title": {
             "type": "string",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TagDtoStatCount": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "$ref": "#/components/schemas/TagDto"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64"
           }
         },
         "additionalProperties": false
@@ -28492,19 +28888,6 @@
         },
         "additionalProperties": false
       },
-      "UserDtoICount": {
-        "type": "object",
-        "properties": {
-          "value": {
-            "$ref": "#/components/schemas/UserDto"
-          },
-          "count": {
-            "type": "integer",
-            "format": "int64"
-          }
-        },
-        "additionalProperties": false
-      },
       "UserParams": {
         "type": "object",
         "properties": {
@@ -28644,6 +29027,18 @@
                 "items": {
                   "$ref": "#/components/schemas/KeyBind"
                 }
+              },
+              "PageUp": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/KeyBind"
+                }
+              },
+              "PageDown": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/KeyBind"
+                }
               }
             },
             "additionalProperties": false
@@ -28684,11 +29079,7 @@
           },
           "timeSpentReading": {
             "type": "integer",
-            "description": "Total time spent reading based on estimates",
-            "format": "int64"
-          },
-          "chaptersRead": {
-            "type": "integer",
+            "description": "Total time spent reading",
             "format": "int64"
           },
           "lastActiveUtc": {
@@ -28700,13 +29091,6 @@
           "avgHoursPerWeekSpentReading": {
             "type": "number",
             "format": "double"
-          },
-          "percentReadPerLibrary": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SingleStatCount"
-            },
-            "nullable": true
           }
         },
         "additionalProperties": false
@@ -29263,7 +29647,7 @@
     },
     {
       "name": "Deprecated",
-      "description": "All APIs here are subject to be removed and are no longer maintained"
+      "description": "All APIs here are subject to be removed and are no longer maintained. Will be removed v0.9.0"
     },
     {
       "name": "WantToRead",
