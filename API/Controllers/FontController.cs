@@ -59,6 +59,7 @@ public class FontController : BaseApiController
     /// <returns></returns>
     [HttpGet]
     [AllowAnonymous]
+    [SkipDeviceTracking]
     public async Task<IActionResult> GetFont(int fontId, string apiKey)
     {
         var userId = await _unitOfWork.UserRepository.GetUserIdByAuthKeyAsync(apiKey);
@@ -69,11 +70,9 @@ public class FontController : BaseApiController
 
         if (font.Provider == FontProvider.System) return BadRequest("System provided fonts are not loaded by API");
 
-
-        var contentType = MimeTypeMap.GetMimeType(Path.GetExtension(font.FileName));
         var path = Path.Join(_directoryService.EpubFontDirectory, font.FileName);
 
-        return PhysicalFile(path, contentType, true);
+        return CachedFile(path);
     }
 
     /// <summary>

@@ -25,6 +25,7 @@ using HtmlAgilityPack;
 using Kavita.Common;
 using Kavita.Common.EnvironmentInfo;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -63,6 +64,11 @@ public class Startup
         services.Configure<AppSettingsDto>(_config);
         services.AddApplicationServices(_config, _env);
 
+        // Store keys inside database, such that cookies can be decrypted between container restarts
+        services.AddDataProtection()
+            .PersistKeysToDbContext<DataContext>()
+            .SetApplicationName(BuildInfo.AppName);
+
         services.AddControllers(options =>
         {
             options.CacheProfiles.Add(ResponseCacheProfiles.Instant,
@@ -96,13 +102,6 @@ public class Startup
                 {
                     Duration = _env.IsDevelopment() ? 0 : 60 * 60 * 6,
                     Location = ResponseCacheLocation.Client,
-                });
-            options.CacheProfiles.Add(ResponseCacheProfiles.Images,
-                new CacheProfile()
-                {
-                    Duration = 60,
-                    Location = ResponseCacheLocation.Client,
-                    NoStore = false
                 });
             options.CacheProfiles.Add(ResponseCacheProfiles.Month,
                 new CacheProfile()

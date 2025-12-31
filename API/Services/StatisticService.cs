@@ -396,7 +396,9 @@ public class StatisticService(ILogger<StatisticService> logger, DataContext cont
                 Volumes = context.Volume.Count(v => Math.Abs(v.MinNumber - Parser.LooseLeafVolumeNumber) > 0.001f),
                 TotalBytes = context.MangaFile.Sum(m => m.Bytes)
             })
-            .FirstAsync();
+            .FirstOrDefaultAsync();
+
+        if (counts == null) return new ServerStatisticsDto();
 
         var totalReadingHours = await context.AppUserReadingSessionActivityData
             .Where(a => a.EndTimeUtc != null)
@@ -1221,7 +1223,8 @@ public class StatisticService(ILogger<StatisticService> logger, DataContext cont
             return null;
         }
 
-        var daysSinceCounting = (DateTime.UtcNow - sessionRecordedSince.RanAt).Days;
+        filter.StartDate ??= sessionRecordedSince.RanAt;
+        filter.StartDate = filter.StartDate < sessionRecordedSince.RanAt ? sessionRecordedSince.RanAt : filter.StartDate;
 
         var sessions = await context.AppUserReadingSessionActivityData
             .ApplyStatsFilter(filter, userId, socialPreferences, requestingUser, isAggregate: true)
@@ -1258,7 +1261,7 @@ public class StatisticService(ILogger<StatisticService> logger, DataContext cont
             .GroupBy(x => x.hour)
             .ToDictionary(
                 g => g.Key,
-                g => g.Sum(x => x.totalTimeSpent) / daysSinceCounting
+                g => g.Sum(x => x.totalTimeSpent) / g.Count()
             );
 
         var data = Enumerable.Range(0, 24)
