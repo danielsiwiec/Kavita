@@ -2,12 +2,12 @@
   "openapi": "3.0.4",
   "info": {
     "title": "Kavita",
-    "description": "Kavita provides a set of APIs that are authenticated by JWT. JWT token can be copied from local storage. Assume all fields of a payload are required. Built against v0.8.8.20",
+    "description": "Kavita provides a set of APIs that are authenticated by JWT. JWT token can be copied from local storage. Assume all fields of a payload are required. Built against v0.8.8.21",
     "license": {
       "name": "GPL-3.0",
       "url": "https://github.com/Kareadita/Kavita/blob/develop/LICENSE"
     },
-    "version": "0.8.8.20"
+    "version": "0.8.8.21"
   },
   "servers": [
     {
@@ -3428,6 +3428,350 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/FullProgressDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/recommended/quick-reads": {
+      "get": {
+        "tags": [
+          "Deprecated"
+        ],
+        "summary": "Quick Reads are series that should be readable in less than 10 in total and are not Ongoing in release.",
+        "parameters": [
+          {
+            "name": "libraryId",
+            "in": "query",
+            "description": "Library to restrict series to",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "description": "If set to 0, will set as MaxInt",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/recommended/quick-catchup-reads": {
+      "get": {
+        "tags": [
+          "Deprecated"
+        ],
+        "summary": "Quick Catchup Reads are series that should be readable in less than 10 in total and are Ongoing in release.",
+        "parameters": [
+          {
+            "name": "libraryId",
+            "in": "query",
+            "description": "Library to restrict series to",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "description": "If set to 0, will set as MaxInt",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/recommended/highly-rated": {
+      "get": {
+        "tags": [
+          "Deprecated"
+        ],
+        "summary": "Highly Rated based on other users ratings. Will pull series with ratings > 4.0, weighted by count of other users.",
+        "parameters": [
+          {
+            "name": "libraryId",
+            "in": "query",
+            "description": "Library to restrict series to",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "description": "If set to 0, will set as MaxInt",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/recommended/more-in": {
+      "get": {
+        "tags": [
+          "Deprecated"
+        ],
+        "summary": "Chooses a random genre and shows series that are in that without reading progress",
+        "parameters": [
+          {
+            "name": "libraryId",
+            "in": "query",
+            "description": "Library to restrict series to",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "genreId",
+            "in": "query",
+            "description": "Genre Id",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "description": "If set to 0, will set as MaxInt",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/recommended/rediscover": {
+      "get": {
+        "tags": [
+          "Deprecated"
+        ],
+        "summary": "Series that are fully read by the user in no particular order",
+        "parameters": [
+          {
+            "name": "libraryId",
+            "in": "query",
+            "description": "Library to restrict series to",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "description": "If set to 0, will set as MaxInt",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDto"
                   }
                 }
               }
@@ -12201,350 +12545,6 @@
         }
       }
     },
-    "/api/Recommended/quick-reads": {
-      "get": {
-        "tags": [
-          "Recommended"
-        ],
-        "summary": "Quick Reads are series that should be readable in less than 10 in total and are not Ongoing in release.",
-        "parameters": [
-          {
-            "name": "libraryId",
-            "in": "query",
-            "description": "Library to restrict series to",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "PageNumber",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "PageSize",
-            "in": "query",
-            "description": "If set to 0, will set as MaxInt",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SeriesDto"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SeriesDto"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SeriesDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Recommended/quick-catchup-reads": {
-      "get": {
-        "tags": [
-          "Recommended"
-        ],
-        "summary": "Quick Catchup Reads are series that should be readable in less than 10 in total and are Ongoing in release.",
-        "parameters": [
-          {
-            "name": "libraryId",
-            "in": "query",
-            "description": "Library to restrict series to",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "PageNumber",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "PageSize",
-            "in": "query",
-            "description": "If set to 0, will set as MaxInt",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SeriesDto"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SeriesDto"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SeriesDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Recommended/highly-rated": {
-      "get": {
-        "tags": [
-          "Recommended"
-        ],
-        "summary": "Highly Rated based on other users ratings. Will pull series with ratings > 4.0, weighted by count of other users.",
-        "parameters": [
-          {
-            "name": "libraryId",
-            "in": "query",
-            "description": "Library to restrict series to",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "PageNumber",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "PageSize",
-            "in": "query",
-            "description": "If set to 0, will set as MaxInt",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SeriesDto"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SeriesDto"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SeriesDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Recommended/more-in": {
-      "get": {
-        "tags": [
-          "Recommended"
-        ],
-        "summary": "Chooses a random genre and shows series that are in that without reading progress",
-        "parameters": [
-          {
-            "name": "libraryId",
-            "in": "query",
-            "description": "Library to restrict series to",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "genreId",
-            "in": "query",
-            "description": "Genre Id",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "PageNumber",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "PageSize",
-            "in": "query",
-            "description": "If set to 0, will set as MaxInt",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SeriesDto"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SeriesDto"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SeriesDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Recommended/rediscover": {
-      "get": {
-        "tags": [
-          "Recommended"
-        ],
-        "summary": "Series that are fully read by the user in no particular order",
-        "parameters": [
-          {
-            "name": "libraryId",
-            "in": "query",
-            "description": "Library to restrict series to",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "PageNumber",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "PageSize",
-            "in": "query",
-            "description": "If set to 0, will set as MaxInt",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SeriesDto"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SeriesDto"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SeriesDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Review/series": {
       "post": {
         "tags": [
@@ -13995,6 +13995,15 @@
             }
           },
           {
+            "name": "userId",
+            "in": "query",
+            "description": "Optional user id to request the OnDeck for someone else. They must have profile sharing enabled when doing so",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
             "name": "libraryId",
             "in": "query",
             "description": "This is not in use",
@@ -14007,7 +14016,7 @@
           {
             "name": "context",
             "in": "query",
-            "description": "For complex queries, Library has certain restrictions where the library should not be included in results.\nThis enum dictates which field to use for the lookup.",
+            "description": "",
             "schema": {
               "enum": [
                 1,
@@ -16295,6 +16304,45 @@
         }
       }
     },
+    "/api/Stats/popular-reading-list": {
+      "get": {
+        "tags": [
+          "Stats"
+        ],
+        "summary": "Gets the top 5 most popular reading lists. Counts a reading list as active if a user has read at least some",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDtoStatCount"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDtoStatCount"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SeriesDtoStatCount"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Stats/popular-genres": {
       "get": {
         "tags": [
@@ -16371,48 +16419,36 @@
         }
       }
     },
-    "/api/Stats/popular-authors": {
+    "/api/Stats/popular-people": {
       "get": {
         "tags": [
           "Stats"
         ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PersonDtoStatCount"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PersonDtoStatCount"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PersonDtoStatCount"
-                  }
-                }
-              }
+        "parameters": [
+          {
+            "name": "role",
+            "in": "query",
+            "schema": {
+              "enum": [
+                1,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15
+              ],
+              "type": "integer",
+              "format": "int32"
             }
           }
-        }
-      }
-    },
-    "/api/Stats/popular-artists": {
-      "get": {
-        "tags": [
-          "Stats"
         ],
         "responses": {
           "200": {
@@ -17934,35 +17970,31 @@
       }
     },
     "/api/Stream/external-source-exists": {
-      "get": {
+      "post": {
         "tags": [
           "Stream"
         ],
         "summary": "Validates the external source by host is unique (for this user)",
-        "parameters": [
-          {
-            "name": "host",
-            "in": "query",
-            "description": "",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "name",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "apiKey",
-            "in": "query",
-            "schema": {
-              "type": "string"
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExternalSourceDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExternalSourceDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExternalSourceDto"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -23908,6 +23940,11 @@
             "type": "string",
             "description": "File extension",
             "nullable": true
+          },
+          "koreaderHash": {
+            "type": "string",
+            "description": "A hash of the document using Koreader's unique hashing algorithm",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -25909,6 +25946,10 @@
             "type": "string",
             "description": "Folder Path to Scan",
             "nullable": true
+          },
+          "abortOnNoSeriesMatch": {
+            "type": "boolean",
+            "description": "If true, only runs the scan if a matches series is found. I.e. prevent library scans"
           }
         },
         "additionalProperties": false,
@@ -27040,6 +27081,11 @@
             "type": "string",
             "description": "The Version of Kavita on the first run",
             "nullable": true
+          },
+          "statsApiHits": {
+            "type": "integer",
+            "description": "How many times Kavita has hit the Stats API",
+            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -30005,9 +30051,6 @@
     },
     {
       "name": "ReadingProfile"
-    },
-    {
-      "name": "Recommended"
     },
     {
       "name": "Review"
