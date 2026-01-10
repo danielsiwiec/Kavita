@@ -2,12 +2,12 @@
   "openapi": "3.0.4",
   "info": {
     "title": "Kavita",
-    "description": "Kavita provides a set of APIs that are authenticated by JWT. JWT token can be copied from local storage. Assume all fields of a payload are required. Built against v0.8.8.23",
+    "description": "Kavita provides a set of APIs that are authenticated by JWT. JWT token can be copied from local storage. Assume all fields of a payload are required. Built against v0.8.8.24",
     "license": {
       "name": "GPL-3.0",
       "url": "https://github.com/Kareadita/Kavita/blob/develop/LICENSE"
     },
-    "version": "0.8.8.23"
+    "version": "0.8.8.24"
   },
   "servers": [
     {
@@ -6587,6 +6587,25 @@
           "Manage"
         ],
         "summary": "Returns a list of all Series that is Kavita+ applicable to metadata match and the status of it",
+        "parameters": [
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "description": "If set to 0, will set as MaxInt",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -16818,11 +16837,10 @@
           {
             "name": "userId",
             "in": "query",
-            "description": "If userId is 0 and user is not an admin, API will default to userId",
+            "description": "",
             "schema": {
               "type": "integer",
-              "format": "int32",
-              "default": 0
+              "format": "int32"
             }
           }
         ],
@@ -16869,11 +16887,10 @@
           {
             "name": "userId",
             "in": "query",
-            "description": "If userId is 0 and user is not an admin, API will default to userId",
+            "description": "",
             "schema": {
               "type": "integer",
-              "format": "int32",
-              "default": 0
+              "format": "int32"
             }
           }
         ],
@@ -17909,15 +17926,6 @@
         ],
         "summary": "Return a user's reading session history",
         "parameters": [
-          {
-            "name": "userId",
-            "in": "query",
-            "description": "",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
           {
             "name": "StartDate",
             "in": "query",
@@ -19466,6 +19474,47 @@
         }
       }
     },
+    "/api/Users/has-profile-shared": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Does the requested user have their profile sharing on",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "boolean"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Users/has-reading-progress": {
       "get": {
         "tags": [
@@ -20521,7 +20570,7 @@
             "format": "date-time",
             "nullable": true
           },
-          "lastAccessedAt": {
+          "lastAccessedAtUtc": {
             "type": "string",
             "format": "date-time",
             "nullable": true
