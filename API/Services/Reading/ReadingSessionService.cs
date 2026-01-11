@@ -67,6 +67,7 @@ public sealed class ReadingSessionService : IReadingSessionService, IDisposable,
 
         using var scope = _serviceScopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<DataContext>();
+        var eventHub = scope.ServiceProvider.GetRequiredService<IEventHub>();
 
         var session = await GetOrCreateSessionAsync(userId, progressDto, context);
 
@@ -76,6 +77,8 @@ public sealed class ReadingSessionService : IReadingSessionService, IDisposable,
         session.LastModifiedUtc = DateTime.UtcNow;
 
         await context.SaveChangesAsync();
+
+        await eventHub.SendMessageAsync(MessageFactory.ReadingSessionUpdate, MessageFactory.ReadingSessionUpdateEvent(userId, session.Id));
     }
 
     private async Task<AppUserReadingSession> GetOrCreateSessionAsync(int userId, ProgressDto dto, DataContext context)
@@ -112,18 +115,20 @@ public sealed class ReadingSessionService : IReadingSessionService, IDisposable,
         return newSession;
     }
 
-    private async Task UpdateActivityDataAsync( AppUserReadingSession session, ProgressDto progressDto, ClientInfoData? clientInfo,
+    private async Task UpdateActivityDataAsync(AppUserReadingSession session, ProgressDto progressDto, ClientInfoData? clientInfo,
         int? deviceId, IServiceScope scope, DataContext context)
     {
+        var cutoffUtc = DateTime.UtcNow - _sessionTimeout;
+
         var existingActivity = session.ActivityData
+            .Where(d => d.EndTimeUtc == null || d.EndTimeUtc >= cutoffUtc) // End time works as a LastModified
             .FirstOrDefault(d => d.ChapterId == progressDto.ChapterId);
 
         var chapterFormat = await GetChapterFormatAsync(progressDto.ChapterId, context);
 
         if (existingActivity != null)
         {
-            await UpdateExistingActivityAsync(
-                existingActivity, progressDto, clientInfo, deviceId, chapterFormat, scope);
+            await UpdateExistingActivityAsync(existingActivity, progressDto, clientInfo, deviceId, chapterFormat, scope);
         }
         else
         {
@@ -140,7 +145,7 @@ public sealed class ReadingSessionService : IReadingSessionService, IDisposable,
         }
     }
 
-    private async Task UpdateExistingActivityAsync( AppUserReadingSessionActivityData activity, ProgressDto progressDto, ClientInfoData? clientInfo,
+    private async Task UpdateExistingActivityAsync(AppUserReadingSessionActivityData activity, ProgressDto progressDto, ClientInfoData? clientInfo,
         int? deviceId, MangaFormat chapterFormat, IServiceScope scope)
     {
         activity.PagesRead = progressDto.PageNum - activity.StartPage;
@@ -170,7 +175,7 @@ public sealed class ReadingSessionService : IReadingSessionService, IDisposable,
         }
     }
 
-    private async Task UpdateEpubActivityAsync( AppUserReadingSessionActivityData activity, ProgressDto progressDto, Chapter chapter,
+    private async Task UpdateEpubActivityAsync(AppUserReadingSessionActivityData activity, ProgressDto progressDto, Chapter chapter,
         ICacheService cacheService, IServiceScope scope)
     {
         var bookService = scope.ServiceProvider.GetRequiredService<IBookService>();
@@ -269,9 +274,7 @@ public sealed class ReadingSessionService : IReadingSessionService, IDisposable,
         }
     }
 
-    private async Task<List<int>> CloseSessionAsync(
-        AppUserReadingSession session,
-        IEventHub eventHub)
+    private async Task<List<int>> CloseSessionAsync(AppUserReadingSession session, IEventHub eventHub)
     {
         var lastActivity = session.ActivityData
             .Where(ad => ad.EndTime.HasValue)
@@ -298,6 +301,7 @@ public sealed class ReadingSessionService : IReadingSessionService, IDisposable,
         var completedChapterIds = session.ActivityData
             .Where(d => d.TotalPages > 0 && d.EndPage >= d.TotalPages)
             .Select(d => d.ChapterId)
+            .Distinct()
             .ToList();
 
         // Clear format caches
@@ -307,9 +311,7 @@ public sealed class ReadingSessionService : IReadingSessionService, IDisposable,
         }
 
         // Notify clients
-        await eventHub.SendMessageAsync(
-            MessageFactory.SessionClose,
-            MessageFactory.SessionCloseEvent(session.Id));
+        await eventHub.SendMessageAsync(MessageFactory.ReadingSessionClose, MessageFactory.ReadingSessionCloseEvent(session.AppUserId, session.Id));
 
         _logger.LogDebug(
             "Closed session {SessionId} for user {UserId}, {ActivityCount} activities, {CompletedCount} completed chapters",
@@ -347,6 +349,7 @@ public sealed class ReadingSessionService : IReadingSessionService, IDisposable,
             SeriesId = dto.SeriesId,
             LibraryId = dto.LibraryId,
             StartPage = startPage,
+            StartBookScrollId = dto.BookScrollId,
             EndPage = dto.PageNum,
             StartTime = DateTime.Now,
             StartTimeUtc = DateTime.UtcNow,

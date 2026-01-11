@@ -31,7 +31,7 @@ public class MetadataController(IUnitOfWork unitOfWork, IExternalMetadataService
     /// <param name="context">Context from which this API was invoked</param>
     /// <returns></returns>
     [HttpGet("genres")]
-    [ResponseCache(CacheProfileName = ResponseCacheProfiles.Instant, VaryByQueryKeys = ["libraryIds", "context"])]
+    [ResponseCache(CacheProfileName = ResponseCacheProfiles.FiveMinute, VaryByQueryKeys = ["libraryIds", "context"])]
     public async Task<ActionResult<IList<GenreTagDto>>> GetAllGenres(string? libraryIds, QueryContext context = QueryContext.None)
     {
         var ids = libraryIds?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
@@ -46,7 +46,6 @@ public class MetadataController(IUnitOfWork unitOfWork, IExternalMetadataService
     /// </summary>
     /// <returns></returns>
     [HttpPost("genres-with-counts")]
-    [ResponseCache(CacheProfileName = ResponseCacheProfiles.FiveMinute)]
     public async Task<ActionResult<PagedList<BrowseGenreDto>>> GetBrowseGenres(UserParams? userParams = null)
     {
         userParams ??= UserParams.Default;
@@ -63,7 +62,7 @@ public class MetadataController(IUnitOfWork unitOfWork, IExternalMetadataService
     /// <param name="role">role</param>
     /// <returns></returns>
     [HttpGet("people-by-role")]
-    [ResponseCache(CacheProfileName = ResponseCacheProfiles.Instant, VaryByQueryKeys = ["role"])]
+    [ResponseCache(CacheProfileName = ResponseCacheProfiles.Minute, VaryByQueryKeys = ["role"])]
     public async Task<ActionResult<IList<PersonDto>>> GetAllPeople(PersonRole? role)
     {
         return role.HasValue ?
@@ -77,7 +76,7 @@ public class MetadataController(IUnitOfWork unitOfWork, IExternalMetadataService
     /// <param name="libraryIds">String separated libraryIds or null for all people</param>
     /// <returns></returns>
     [HttpGet("people")]
-    [ResponseCache(CacheProfileName = ResponseCacheProfiles.Instant, VaryByQueryKeys = ["libraryIds"])]
+    [ResponseCache(CacheProfileName = ResponseCacheProfiles.Minute, VaryByQueryKeys = ["libraryIds"])]
     public async Task<ActionResult<IList<PersonDto>>> GetAllPeople(string? libraryIds)
     {
         var ids = libraryIds?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();
@@ -95,7 +94,7 @@ public class MetadataController(IUnitOfWork unitOfWork, IExternalMetadataService
     /// <param name="libraryIds">String separated libraryIds or null for all tags</param>
     /// <returns></returns>
     [HttpGet("tags")]
-    [ResponseCache(CacheProfileName = ResponseCacheProfiles.Instant, VaryByQueryKeys = ["libraryIds"])]
+    [ResponseCache(CacheProfileName = ResponseCacheProfiles.Minute, VaryByQueryKeys = ["libraryIds"])]
     public async Task<ActionResult<IList<TagDto>>> GetAllTags(string? libraryIds)
     {
         var ids = libraryIds?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();
@@ -111,7 +110,6 @@ public class MetadataController(IUnitOfWork unitOfWork, IExternalMetadataService
     /// </summary>
     /// <returns></returns>
     [HttpPost("tags-with-counts")]
-    [ResponseCache(CacheProfileName = ResponseCacheProfiles.FiveMinute)]
     public async Task<ActionResult<PagedList<BrowseTagDto>>> GetBrowseTags(UserParams? userParams = null)
     {
         userParams ??= UserParams.Default;
@@ -187,7 +185,7 @@ public class MetadataController(IUnitOfWork unitOfWork, IExternalMetadataService
     /// </summary>
     /// <returns></returns>
     [HttpGet("all-languages")]
-    [ResponseCache(CacheProfileName = ResponseCacheProfiles.Hour)]
+    [ResponseCache(CacheProfileName = ResponseCacheProfiles.Month)]
     public IEnumerable<LanguageDto> GetAllValidLanguages()
     {
         return CultureInfo.GetCultures(CultureTypes.AllCultures).Select(c =>
