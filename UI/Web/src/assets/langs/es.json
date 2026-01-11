@@ -2110,7 +2110,9 @@
         "required-field": "Este campo es obligatorio",
         "valid-email": "Este debe ser un correo electrónico válido",
         "password-validation": "La contraseña debe tener entre 6 y 256 caracteres",
-        "year-validation": "Este debe ser un año válido mayor que 1000 y que conste de 4 caracteres"
+        "year-validation": "Este debe ser un año válido mayor que 1000 y que conste de 4 caracteres",
+        "other-field-invalid": "No se pudo comprobar disponibilidad, {{other}} no es válido",
+        "invalid-uri": "La URI provista no es válida"
     },
     "entity-type": {
         "volume": "volumen",
@@ -2145,7 +2147,11 @@
         "devices-tab": "Dispositivos",
         "stats-tab": "Estadísticas",
         "scrobbling-tab": "Scrobbling",
-        "smart-filters-tab": "Filtros inteligentes"
+        "smart-filters-tab": "Filtros inteligentes",
+        "activity-tab": "Actividad",
+        "annotations-tab": "Anotaciones",
+        "overview-tab": "Resumen",
+        "management-tab": "Administración"
     },
     "common": {
         "reset-to-default": "Restablecer valores predeterminados",
@@ -2187,7 +2193,12 @@
         "chapter-nums": "Capítulos",
         "volume-nums": "Volúmenes",
         "chapter-count": "{{num}} capítulos",
-        "no-data": "No hay datos"
+        "no-data": "No hay datos",
+        "libraries": "Bibliotecas",
+        "roles": "Roles",
+        "confirm": "Confirmar",
+        "selected": "Seleccionado",
+        "unknown": "Desconocido"
     },
     "confirm": {
         "alert": "Alerta",
@@ -2375,5 +2386,21 @@
         "delete": "{{common.delete}}",
         "min-length": "La reseña debe tener al menos {{count}} carácteres",
         "required": "{{validation.required-field}}"
+    },
+    "manage-reading-profiles": {
+        "font-size-book-label": "Tamaño de la fuente",
+        "font-size-book-tooltip": "Escala que se aplicará a la fuente del libro",
+        "line-height-book-label": "Espaciado de línea",
+        "line-height-book-tooltip": "Cuánto espacio habrá entre las líneas del libro",
+        "margin-book-label": "Margen",
+        "pdf-reader-settings-title": "Lector PDF",
+        "pdf-scroll-mode-label": "Modo desplazamiento",
+        "pdf-scroll-mode-tooltip": "Cómo desplazarse por las páginas. Vertical/Horizontal y Toca para cambiar (sin desplazamiento)",
+        "pdf-spread-mode-label": "Modo difusión",
+        "pdf-spread-mode-tooltip": "Cómo deben distribuirse las páginas. Únicas o dobles (Impar/Par)",
+        "pdf-theme-label": "Tema",
+        "pdf-theme-tooltip": "Color del tema para el lector",
+        "reading-profile-series-settings-title": "Serie",
+        "reading-profile-library-settings-title": "Biblioteca"
     }
 }
