@@ -30,7 +30,7 @@ fi
 echo "Starting Kavita"
 echo ls -l "/kavita/config/appsettings.json"
 
-exec ./Kavita
+./Kavita
 
 #if [[ "$PUID" -eq 0 ]]; then
 #    # Run as root

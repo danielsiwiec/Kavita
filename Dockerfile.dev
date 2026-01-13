@@ -1,0 +1,85 @@
+# Multi-stage Dockerfile that builds everything from source
+# Use this for local development when .NET SDK is not installed
+
+#######################################
+# Stage 1: Build the Angular UI
+#######################################
+FROM node:22-slim AS ui-builder
+
+WORKDIR /app/UI/Web
+
+# Copy UI source files
+COPY UI/Web/package*.json ./
+RUN npm install --legacy-peer-deps
+
+COPY UI/Web/ ./
+RUN npm run prod
+
+#######################################
+# Stage 2: Build the .NET API
+#######################################
+FROM mcr.microsoft.com/dotnet/sdk:10.0-preview AS api-builder
+
+WORKDIR /app
+
+# Copy solution and project files first for better layer caching
+COPY Kavita.sln ./
+# Don't copy global.json - it pins SDK 9.0 but projects target net10.0
+COPY API/API.csproj API/
+COPY Kavita.Common/Kavita.Common.csproj Kavita.Common/
+COPY API.Tests/API.Tests.csproj API.Tests/
+COPY API.Benchmark/API.Benchmark.csproj API.Benchmark/
+
+# Restore dependencies
+RUN dotnet restore
+
+# Copy all source code
+COPY API/ API/
+COPY Kavita.Common/ Kavita.Common/
+COPY favicon.ico ./
+
+# Build and publish
+# Enable preview language features (field keyword requires it)
+RUN dotnet publish API/API.csproj -c Release --self-contained --runtime linux-arm64 -o /publish -p:LangVersion=preview
+
+# Rename API to Kavita
+RUN mv /publish/API /publish/Kavita
+
+#######################################
+# Stage 3: Production image
+#######################################
+FROM ubuntu:noble
+
+# Copy built API
+COPY --from=api-builder /publish /kavita
+
+# Copy built UI
+COPY --from=ui-builder /app/UI/Web/dist/browser /kavita/wwwroot
+
+# Copy config
+COPY API/config/appsettings.json /tmp/config/appsettings.json
+
+# Install dependencies
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+  && apt-get install -y libicu-dev libgdiplus curl tzdata \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+RUN chmod +x /kavita/Kavita
+
+EXPOSE 5000
+
+WORKDIR /kavita
+
+HEALTHCHECK --interval=30s --timeout=15s --start-period=30s --retries=3 CMD curl -fsS http://localhost:5000/api/health || exit 1
+
+# Enable detection of running in a container
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+# Set the time zone
+ENV TZ=UTC
+
+ENTRYPOINT [ "/bin/bash" ]
+CMD ["/entrypoint.sh"]
