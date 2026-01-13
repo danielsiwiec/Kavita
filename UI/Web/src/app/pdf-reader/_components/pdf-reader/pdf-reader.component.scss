@@ -56,10 +56,6 @@ $loading-bar-height: 24px;
   outline: none;
   height: 100%;
 
-  &.immersive {
-    top: 0px;
-  }
-
   &.no-pointer-events {
     pointer-events: none;
   }
@@ -81,10 +77,6 @@ $loading-bar-height: 24px;
   outline: none;
   height: 100%;
   cursor: pointer;
-
-  &.immersive {
-    top: 0px;
-  }
 }
 
 .left {
@@ -100,9 +92,59 @@ $loading-bar-height: 24px;
   outline: none;
   height: 100%;
   cursor: pointer;
+}
 
-  &.immersive {
-    top: 0px;
+// Immersive mode styles
+.immersive-controls {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 2147483647;
+  display: flex;
+  gap: 8px;
+}
+
+.immersive-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  transition: opacity 0.2s ease, background 0.2s ease;
+
+  &:hover, &:active {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.7);
+  }
+}
+
+// When in immersive mode, hide toolbars and allow proportional zoom
+::ng-deep .immersive-active {
+  // Hide all toolbars and sidebar
+  .toolbar,
+  #toolbarViewer,
+  #secondaryToolbar,
+  #sidebarContainer {
+    display: none !important;
+  }
+
+  // Full height, allow horizontal scroll when zoomed
+  #viewerContainer {
+    top: 0 !important;
+    overflow-x: auto !important;
+  }
+
+  // Remove page margins/borders for cleaner look
+  .pdfViewer .page {
+    margin: 0 !important;
+    border: 0 !important;
   }
 }
 

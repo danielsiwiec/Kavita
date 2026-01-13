@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  computed,
   DestroyRef,
   ElementRef,
   HostListener,
@@ -39,8 +38,6 @@ import {PdfScrollMode} from "../../../_models/preferences/pdf-scroll-mode";
 import {PdfTheme} from "../../../_models/preferences/pdf-theme";
 import {PdfSpreadMode} from "../../../_models/preferences/pdf-spread-mode";
 import {SpreadType} from "node_modules/ngx-extended-pdf-viewer/lib/options/spread-type";
-import {PdfScrollModeTypePipe} from "../../_pipe/pdf-scroll-mode.pipe";
-import {PdfSpreadTypePipe} from "../../_pipe/pdf-spread-mode.pipe";
 import {ReadingProfile} from "../../../_models/preferences/reading-profiles";
 import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {KeyBindService} from "../../../_services/key-bind.service";
@@ -52,8 +49,7 @@ import {Breakpoint, BreakpointService} from "../../../_services/breakpoint.servi
   templateUrl: './pdf-reader.component.html',
   styleUrls: ['./pdf-reader.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgStyle, NgxExtendedPdfViewerModule, NgbTooltip, AsyncPipe, TranslocoDirective,
-    PdfScrollModeTypePipe, PdfSpreadTypePipe]
+  imports: [NgStyle, NgxExtendedPdfViewerModule, NgbTooltip, AsyncPipe, TranslocoDirective]
 })
 export class PdfReaderComponent implements OnInit, OnDestroy {
 
@@ -135,10 +131,24 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   scrollMode: ScrollModeType = ScrollModeType.vertical;
   spreadMode: SpreadType = 'off';
   isSearchOpen: boolean = false;
+  /**
+   * Immersive mode hides the toolbar for a fullscreen-like experience.
+   * Works on iOS/iPadOS where the native Fullscreen API is not supported.
+   */
+  immersiveMode: boolean = false;
+  /**
+   * Stores the zoom setting before entering immersive mode so it can be restored.
+   */
+  private previousZoomSetting: string | number = 'auto';
 
-  canDownload = computed(() =>
-    this.accountService.hasDownloadRole(this.accountService.currentUserSignal()!)
-  );
+  /**
+   * Bound event handlers for cleanup.
+   */
+  private gestureStartHandler: ((e: Event) => void) | null = null;
+  private gestureChangeHandler: ((e: Event) => void) | null = null;
+  private touchStartHandler: ((e: TouchEvent) => void) | null = null;
+  private touchMoveHandler: ((e: TouchEvent) => void) | null = null;
+  private lastTouchEnd: number = 0;
 
   constructor() {
       this.navService.hideNavBar();
@@ -164,11 +174,14 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
       this.themeService.setTheme(theme.name);
     });
 
+    // Restore pinch zoom if leaving while in immersive mode
+    if (this.immersiveMode) {
+      this.enablePinchZoom();
+    }
+
     this.navService.showNavBar();
     this.navService.showSideNav();
     this.readerService.disableWakeLock();
-
-    window.removeEventListener('keydown', this.downloadHandler, { capture: true });
   }
 
   ngOnInit(): void {
@@ -205,8 +218,6 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
 
     this.cdRef.markForCheck();
 
-    window.addEventListener('keydown', this.downloadHandler, { capture: true });
-
     this.accountService.currentUser$.pipe(take(1)).subscribe(user => {
       if (user) {
         this.user = user;
@@ -214,15 +225,6 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
       }
     });
   }
-
-  private downloadHandler = (event: KeyboardEvent) => {
-    if (event.ctrlKey && event.key.toLowerCase() === 's') {
-      if (!this.accountService.hasDownloadRole(this.accountService.currentUserSignal()!)) {
-        event.preventDefault();
-        event.stopImmediatePropagation(); // Stops ALL other handlers
-      }
-    }
-  };
 
 
   calcScrollbarNeeded() {
@@ -400,13 +402,107 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     this.cdRef.markForCheck();
   }
 
-  updateHandTool(event: any) {
-     console.log('event.tool', event);
-  }
-
   updateSearchOpen(event: boolean) {
      this.isSearchOpen = event;
      this.cdRef.markForCheck();
+  }
+
+  toggleImmersiveMode() {
+    this.immersiveMode = !this.immersiveMode;
+    const savedPage = this.currentPage;
+    const viewerContainer = this.document.querySelector('#viewerContainer');
+    const scrollRatio = viewerContainer ? viewerContainer.scrollTop / (viewerContainer.scrollHeight || 1) : 0;
+
+    if (this.immersiveMode) {
+      // Save current zoom and switch to page-width for immersive display
+      this.previousZoomSetting = this.zoomSetting;
+      this.zoomSetting = 'page-width';
+      this.disablePinchZoom();
+    } else {
+      // Restore previous zoom setting
+      this.zoomSetting = this.previousZoomSetting;
+      this.enablePinchZoom();
+    }
+
+    // Restore scroll position after zoom change settles (longer delay for iOS)
+    setTimeout(() => {
+      this.currentPage = savedPage;
+      // Also restore scroll position ratio for iOS
+      if (viewerContainer) {
+        viewerContainer.scrollTop = scrollRatio * viewerContainer.scrollHeight;
+      }
+      this.cdRef.markForCheck();
+    }, 150);
+    this.cdRef.markForCheck();
+  }
+
+  private disablePinchZoom() {
+    // Prevent Safari gesture events (pinch zoom)
+    this.gestureStartHandler = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    };
+    this.gestureChangeHandler = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    };
+
+    // Prevent multi-touch gestures
+    this.touchStartHandler = (e: TouchEvent) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    this.touchMoveHandler = (e: TouchEvent) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    // Add event listeners with capture phase to intercept early
+    const options = { passive: false, capture: true };
+    this.document.documentElement.addEventListener('gesturestart', this.gestureStartHandler, options);
+    this.document.documentElement.addEventListener('gesturechange', this.gestureChangeHandler, options);
+    this.document.documentElement.addEventListener('gestureend', this.gestureStartHandler, options);
+    this.document.documentElement.addEventListener('touchstart', this.touchStartHandler, options);
+    this.document.documentElement.addEventListener('touchmove', this.touchMoveHandler, options);
+
+    // Also add to document and body for extra coverage
+    this.document.addEventListener('gesturestart', this.gestureStartHandler, options);
+    this.document.addEventListener('gesturechange', this.gestureChangeHandler, options);
+    this.document.body.addEventListener('gesturestart', this.gestureStartHandler, options);
+    this.document.body.addEventListener('gesturechange', this.gestureChangeHandler, options);
+  }
+
+  private enablePinchZoom() {
+    const options = { passive: false, capture: true };
+
+    if (this.gestureStartHandler) {
+      this.document.documentElement.removeEventListener('gesturestart', this.gestureStartHandler, options);
+      this.document.documentElement.removeEventListener('gestureend', this.gestureStartHandler, options);
+      this.document.removeEventListener('gesturestart', this.gestureStartHandler, options);
+      this.document.body.removeEventListener('gesturestart', this.gestureStartHandler, options);
+      this.gestureStartHandler = null;
+    }
+    if (this.gestureChangeHandler) {
+      this.document.documentElement.removeEventListener('gesturechange', this.gestureChangeHandler, options);
+      this.document.removeEventListener('gesturechange', this.gestureChangeHandler, options);
+      this.document.body.removeEventListener('gesturechange', this.gestureChangeHandler, options);
+      this.gestureChangeHandler = null;
+    }
+    if (this.touchStartHandler) {
+      this.document.documentElement.removeEventListener('touchstart', this.touchStartHandler, options);
+      this.touchStartHandler = null;
+    }
+    if (this.touchMoveHandler) {
+      this.document.documentElement.removeEventListener('touchmove', this.touchMoveHandler, options);
+      this.touchMoveHandler = null;
+    }
   }
 
   prevPage() {
@@ -421,6 +517,41 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
     this.cdRef.markForCheck();
   }
 
+  zoomIn() {
+    const currentScale = this.getCurrentScale();
+    const newScale = Math.min(currentScale + 0.1, 4.0);
+    this.setZoomScale(newScale);
+  }
+
+  zoomOut() {
+    const currentScale = this.getCurrentScale();
+    const newScale = Math.max(currentScale - 0.1, 0.25);
+    this.setZoomScale(newScale);
+  }
+
+  private getCurrentScale(): number {
+    // Access PDF.js PDFViewerApplication to get actual rendered scale
+    const pdfViewerApp = (window as any).PDFViewerApplication;
+    if (pdfViewerApp?.pdfViewer?.currentScale) {
+      return pdfViewerApp.pdfViewer.currentScale;
+    }
+    // Fallback: convert zoomSetting if it's a number
+    if (typeof this.zoomSetting === 'number') {
+      return this.zoomSetting / 100;
+    }
+    return 1.0;
+  }
+
+  private setZoomScale(scale: number) {
+    // Use PDF.js API directly for immediate effect
+    const pdfViewerApp = (window as any).PDFViewerApplication;
+    if (pdfViewerApp?.pdfViewer) {
+      pdfViewerApp.pdfViewer.currentScale = scale;
+      // Also update our binding to keep in sync
+      this.zoomSetting = Math.round(scale * 100);
+      this.cdRef.markForCheck();
+    }
+  }
 
   protected readonly Breakpoint = Breakpoint;
 }
