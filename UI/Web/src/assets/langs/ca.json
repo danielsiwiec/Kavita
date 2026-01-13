@@ -33,7 +33,9 @@
         "locale-label": "Configuració local",
         "locale-tooltip": "La llengua que ha d'usar el Kavita",
         "prompt-on-download-label": "Pregunta en baixar",
-        "disable-animations-label": "Desactiva les animacions"
+        "disable-animations-label": "Desactiva les animacions",
+        "clients-api-key-label": "Clau de l'API",
+        "clients-api-key-tooltip": "La clau de l'API és com una contrasenya. Reinicialitzar-la invalidarà tots els clients existents."
     },
     "theme-manager": {
         "default-theme": "Per defecte",
@@ -55,6 +57,8 @@
         "email-label": "Adreça electrònica",
         "title": "Gestor de dispositius",
         "platform-label": "Plataforma",
+        "devices-title": "Dispositius",
+        "no-devices": "Encara no s'ha configurat cap dispositiu",
         "name-label": "Nom"
     },
     "changelog-update-item": {
@@ -77,6 +81,8 @@
         "email-label": "Adreça electrònica nova"
     },
     "api-key": {
+        "show": "Mostra",
+        "hide": "Amaga",
         "copy": "Copia"
     },
     "scrobbling-providers": {
@@ -152,14 +158,23 @@
         "comicVine": "Comic Vine"
     },
     "book-reader": {
+        "settings-header": "Paràmetres",
+        "virtual-pages": "pàgines virtuals",
+        "toc-header": "Sumari",
         "loading-book": "S'està carregant el llibre…",
         "go-back": "Ves enrere",
         "previous": "Anterior",
         "go-to-page-prompt": "Hi ha {{totalPages}} pàgines. A quina pàgina voleu anar?",
         "incognito-mode-label": "Mode incògnit",
         "go-to-page": "Ves a la pàgina",
+        "pagination-header": "Secció",
+        "go-to-last-page": "Ves a l'última pàgina",
         "next": "Següent",
-        "page-label": "Pàgina"
+        "table-of-contents-header": "Sumari",
+        "prev-chapter": "Capítol/volum anterior",
+        "next-chapter": "Capítol/volum següent",
+        "page-label": "Pàgina",
+        "title": "Paràmetres del llibre"
     },
     "personal-table-of-contents": {
         "delete": "Suprimeix {{bookmarkName}}"
@@ -380,6 +395,7 @@
         "issue-num": "Número",
         "issue-hash-num": "Número",
         "series-count": "{{num}} sèries",
+        "author-count": "{{num}} autors",
         "item-count": "{{num}} elements",
         "book-num": "Llibre",
         "chapter-num": "Capítol",
@@ -398,6 +414,10 @@
     },
     "typeahead": {
         "add-item": "Afegeix {{item}}…"
+    },
+    "user-stats-info-cards": {
+        "words-count": "{{num}} mots",
+        "pages-count": "{{num}} pàgines"
     },
     "confirm": {
         "ok": "D'acord",

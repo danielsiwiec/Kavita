@@ -1,10 +1,6 @@
 $image-height: 232.91px;
 $image-width: 160px;
 
-.card-item-container {
-  width: $image-width;
-}
-
 .error-banner {
   width: $image-width;
   height: 18px;
@@ -169,7 +165,7 @@ $image-width: 160px;
 
     :first-child {
       min-width: 22px;
-    }
+    } 
 
     .card-title {
       font-size: 0.8rem;
