@@ -160,6 +160,7 @@ export class PreferenceNavComponent implements AfterViewInit {
   private readonly matchedMetadataBadgeCount = toSignal(
     toObservable(this.accountService.hasAdminRole).pipe(
       take(1),
+      filter(_ => this.licenseService.hasValidLicenseSignal()),
       switchMap(isAdmin => {
         if (!isAdmin) return of(-1);
         return this.manageService.getAllKavitaPlusSeries({
