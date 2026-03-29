@@ -21,6 +21,7 @@ using Kavita.Models.DTOs.Stats.V3.ClientDevice;
 using Kavita.Models.Entities;
 using Kavita.Models.Entities.Enums;
 using Kavita.Models.Entities.Enums.UserPreferences;
+using Kavita.Models.Entities.Progress;
 using Kavita.Models.Entities.User;
 using Kavita.Services.Scanner;
 using Microsoft.EntityFrameworkCore;
@@ -1648,14 +1649,32 @@ public class StatisticService(ILogger<StatisticService> logger, IDataContext con
     {
         var socialPreferences = await unitOfWork.UserRepository.GetSocialPreferencesForUser(userId, ct);
         var requestingUser = await unitOfWork.UserRepository.GetUserByIdAsync(requestingUserId, ct: ct);
-        if (requestingUser == null) return PagedList<ReadingHistoryItemDto>.Create([], 0, 0, 0);
+        if (requestingUser == null) return PagedList<ReadingHistoryItemDto>.Empty(userParams);
 
         var userTimeZone = GetTimeZoneOrUtc(filter.TimeZoneId);
 
         var query = context.AppUserReadingSessionActivityData
-            .ApplyStatsFilter(filter, userId, socialPreferences, requestingUser, isAggregate: false, onlyCompleted: false)
-            .WhereIf(filter.Libraries.Count > 0, a => filter.Libraries.Contains(a.LibraryId))
-            .Select(a => new
+            .ApplyStatsFilter(filter, userId, socialPreferences, requestingUser, isAggregate: false,
+                onlyCompleted: false)
+            .WhereIf(filter.Libraries.Count > 0, a => filter.Libraries.Contains(a.LibraryId));
+
+        return await GetReadingHistoryItems(userId, userTimeZone, query, userParams, ct);
+    }
+
+    public Task<PagedList<ReadingHistoryItemDto>> GetReadingHistoryItemsForSeries(int userId, int seriesId, string tzId,
+        UserParams userParams, CancellationToken ct = default)
+    {
+        var userTimeZone = GetTimeZoneOrUtc(tzId);
+
+        var query = context.AppUserReadingSessionActivityData
+            .Where(d => d.SeriesId == seriesId && d.ReadingSession.AppUserId == userId);
+
+        return GetReadingHistoryItems(userId, userTimeZone, query, userParams, ct);
+    }
+
+    private async Task<PagedList<ReadingHistoryItemDto>> GetReadingHistoryItems(int userId, TimeZoneInfo tz, IQueryable<AppUserReadingSessionActivityData> dataQuery, UserParams userParams, CancellationToken ct = default)
+    {
+        var query = dataQuery.Select(a => new
             {
                 a.Id,
                 a.AppUserReadingSessionId,
@@ -1698,14 +1717,41 @@ public class StatisticService(ILogger<StatisticService> logger, IDataContext con
             .Where(a => a.EndTimeUtc != null)
             .OrderByDescending(a => a.StartTimeUtc);
 
-        // Get total count before pagination
-        var totalCount = await query.CountAsync(ct);
+        var groupedQuery = query
+            .GroupBy(a => new { a.AppUserReadingSessionId, a.SeriesId })
+            .Select(g => new
+            {
+                g.Key.AppUserReadingSessionId,
+                g.Key.SeriesId,
+                MinStart = g.Min(x => x.StartTimeUtc), // preserve ordering
+            })
+            .OrderByDescending(g => g.MinStart);
 
-        // Paginate and materialize
-        var items = await query
+        var totalCount = await groupedQuery.CountAsync(ct);
+
+        var pageGroupKeys = await groupedQuery
             .Skip((userParams.PageNumber - 1) * userParams.PageSize)
             .Take(userParams.PageSize)
+            .Select(g => new { g.AppUserReadingSessionId, g.SeriesId })
             .ToListAsync(ct);
+
+        if (pageGroupKeys.Count == 0)
+            return PagedList<ReadingHistoryItemDto>.Empty(totalCount, userParams);
+
+        var sessionIds = pageGroupKeys.Select(k => k.AppUserReadingSessionId).ToHashSet();
+        var seriesIds  = pageGroupKeys.Select(k => k.SeriesId).ToHashSet();
+
+        var items = await query
+            .Where(a => sessionIds.Contains(a.AppUserReadingSessionId) && seriesIds.Contains(a.SeriesId))
+            .ToListAsync(ct);
+
+        var keySet = pageGroupKeys
+            .Select(k => (k.AppUserReadingSessionId, k.SeriesId))
+            .ToHashSet();
+
+        items = items
+            .Where(a => keySet.Contains((a.AppUserReadingSessionId, a.SeriesId)))
+            .ToList();
 
         var libraryTypes = items.Select(i => i.LibraryType).Distinct().ToList();
         var namingContexts = new Dictionary<LibraryType, LocalizedNamingContext>();
@@ -1728,7 +1774,7 @@ public class StatisticService(ILogger<StatisticService> logger, IDataContext con
 
                 var totalPages = x.Sum(s => s.TotalPages);
 
-                var localStart = TimeZoneInfo.ConvertTimeFromUtc(startTime, userTimeZone);
+                var localStart = TimeZoneInfo.ConvertTimeFromUtc(startTime, tz);
 
                 var chapters = x.Select(s =>
                 {
@@ -1772,7 +1818,7 @@ public class StatisticService(ILogger<StatisticService> logger, IDataContext con
                         TotalPages = s.TotalPages,
                         Completed = s.EndPage >= s.TotalPages,
                     };
-                }).OrderBy(c => c.StartTimeUtc).ToList();
+                }).OrderByDescending(c => c.StartTimeUtc).ToList();
 
                 return new ReadingHistoryItemDto
                 {
@@ -1800,7 +1846,7 @@ public class StatisticService(ILogger<StatisticService> logger, IDataContext con
                 };
         }).ToList();
 
-        return PagedList<ReadingHistoryItemDto>.Create(dtos, totalCount, userParams.PageNumber, userParams.PageSize);
+        return PagedList<ReadingHistoryItemDto>.Create(dtos, totalCount, userParams);
     }
 
     private async Task<int> GetAuthorsCount(HashSet<int> chapterIds, CancellationToken ct = default)
