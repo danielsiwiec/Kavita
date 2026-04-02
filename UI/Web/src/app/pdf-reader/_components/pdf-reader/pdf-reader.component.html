@@ -16,7 +16,7 @@
       }
 
       <ngx-extended-pdf-viewer #pdfViewer
-        [src]="readerService.downloadPdf(this.chapterId)"
+        [src]="pdfSrc"
         [authorization]="user.token ? 'Bearer ' + user.token : ''"
         height="100vh"
         [(page)]="currentPage"

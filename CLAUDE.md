@@ -354,3 +354,157 @@ Added to `UI/Web/src/assets/langs/en.json` under `pdf-reader`:
 - `disablePinchZoom()` / `enablePinchZoom()` - iOS gesture blocking
 
 ---
+
+### Local File Cache (PDF Reader)
+
+**Files Modified:**
+- `UI/Web/src/app/_services/file-cache.service.ts` (new)
+- `UI/Web/src/app/_services/reader.service.ts`
+- `UI/Web/src/app/pdf-reader/_components/pdf-reader/pdf-reader.component.ts`
+- `UI/Web/src/app/pdf-reader/_components/pdf-reader/pdf-reader.component.html`
+
+**Purpose:** Caches downloaded PDF files locally in IndexedDB so that re-opening a previously read file loads instantly from cache instead of re-downloading from the server. Works in web browsers and PWA (including iOS/iPadOS).
+
+**Dependencies:** Uses the browser's native IndexedDB API (no external libraries). Follows the same pattern as the existing `DownloadStorageService`.
+
+---
+
+#### Architecture
+
+**Why IndexedDB (not Cache API or Service Worker)?**
+- Kavita has no service worker; Cache API is tightly coupled to Request/Response pairs
+- The PDF viewer (`ngx-extended-pdf-viewer`) accepts `ArrayBuffer` as `[src]`, so we fetch the blob ourselves and pass it directly
+- IndexedDB already has precedent in the codebase via `DownloadStorageService`
+
+**Why a separate database (`kavita-file-cache`) instead of reusing `kavita-downloads`?**
+- `kavita-downloads` stores download queue metadata (status, labels, progress)
+- The file cache stores large binary blobs with LRU eviction metadata
+- Mixing them would complicate both schemas
+
+---
+
+#### FileCacheService
+
+**Database:** `kavita-file-cache`, object store: `cached-files`, keyPath: `key`
+
+**Schema per entry:**
+```typescript
+interface CachedFileEntry {
+  key: string;            // e.g., "pdf:123"
+  blob: Blob;             // the file data
+  size: number;           // blob.size in bytes
+  mimeType: string;       // e.g., "application/pdf"
+  cachedAt: string;       // ISO timestamp
+  lastAccessedAt: string; // ISO timestamp, updated on every read
+}
+```
+
+**Public API:**
+- `get(key: string): Promise<Blob | null>` - Retrieves cached blob, updates `lastAccessedAt`. Returns `null` on miss.
+- `put(key: string, blob: Blob, mimeType: string): Promise<void>` - Stores blob, runs LRU eviction if over budget.
+- `delete(key: string): Promise<void>` - Removes a specific entry.
+- `clear(): Promise<void>` - Wipes entire cache.
+- `getTotalSize(): Promise<number>` - Returns total bytes cached.
+
+**Eviction:** LRU by `lastAccessedAt`. Max total size: 500 MB. On every `put()`, if total exceeds budget, oldest entries are evicted until under limit.
+
+**iOS PWA considerations:** All IndexedDB operations are wrapped in try/catch. On failure (quota exceeded, etc.), the app degrades gracefully to network-only mode without breaking.
+
+---
+
+#### PDF Reader Integration
+
+##### Flow: Cache Hit
+```
+loadPdf() → fileCacheService.get("pdf:{chapterId}")
+  → hit → blob.arrayBuffer() → pdfSrc = ArrayBuffer
+  → ngx-extended-pdf-viewer renders from memory (no network request)
+```
+
+##### Flow: Cache Miss
+```
+loadPdf() → fileCacheService.get("pdf:{chapterId}")
+  → miss → readerService.downloadPdfBlob(chapterId)
+  → blob.arrayBuffer() → pdfSrc = ArrayBuffer (renders immediately)
+  → fileCacheService.put("pdf:{chapterId}", blob) (background, non-blocking)
+```
+
+##### Flow: Error Fallback
+```
+loadPdf() → fetch fails → pdfSrc = URL string (original behavior)
+  → ngx-extended-pdf-viewer fetches URL directly
+```
+
+##### Key Implementation
+
+**ReaderService** - new method:
+```typescript
+downloadPdfBlob(chapterId: number): Observable<Blob> {
+  const url = this.downloadPdf(chapterId);
+  return this.httpClient.get(url, { responseType: 'blob' });
+}
+```
+
+**PdfReaderComponent** - new property and method:
+```typescript
+pdfSrc: string | ArrayBuffer | undefined;
+
+private async loadPdf(): Promise<void> {
+  const cacheKey = `pdf:${this.chapterId}`;
+
+  // Try cache first
+  const cached = await this.fileCacheService.get(cacheKey);
+  if (cached) {
+    this.pdfSrc = await cached.arrayBuffer();
+    return;
+  }
+
+  // Cache miss: fetch, render, then cache in background
+  this.readerService.downloadPdfBlob(this.chapterId).subscribe({
+    next: async (blob) => {
+      this.pdfSrc = await blob.arrayBuffer();
+      await this.fileCacheService.put(cacheKey, blob, 'application/pdf');
+    },
+    error: () => {
+      // Fallback to URL (original behavior)
+      this.pdfSrc = this.readerService.downloadPdf(this.chapterId);
+    }
+  });
+}
+```
+
+**HTML** - changed `[src]` binding:
+```html
+<!-- Was: [src]="readerService.downloadPdf(this.chapterId)" -->
+<!-- Now: -->
+@if (pdfSrc) {
+  <ngx-extended-pdf-viewer [src]="pdfSrc" ... />
+}
+```
+
+The `@if (pdfSrc)` guard prevents the viewer from rendering before the PDF data is ready (whether from cache or network).
+
+---
+
+#### Critical UX Requirement: No Loading Regression
+
+The viewer **must** start rendering immediately when a PDF is opened - the user should see pages streaming in with a progress bar, just like the original URL-based behavior. The cache should be invisible to the user on first load.
+
+**How this is achieved:**
+- **Cache hit**: `pdfSrc` is set to the cached `ArrayBuffer` - viewer renders instantly from memory
+- **Cache miss**: `pdfSrc` is set to the **URL string** immediately (preserving original streaming behavior), while a background fetch populates the cache for next time
+- The background caching fetch is fire-and-forget and does not affect the current render
+
+**What NOT to do:**
+- Do NOT gate the viewer behind `@if (pdfSrc)` or any guard that waits for the blob to fully download - this causes the viewer to show a blank loading state until the entire file is fetched
+- Do NOT replace the URL with a blob on cache miss - let the viewer stream from the URL directly
+
+---
+
+#### Why Not These Approaches
+
+1. **HTTP cache headers only**: The backend already returns 1-hour cache headers, but browser HTTP cache is unreliable for large files, doesn't work well offline, and is opaque (can't control eviction or inspect contents).
+
+2. **Service Worker + Cache API**: Would require adding `@angular/service-worker` and `ngsw-config.json` - a much larger change with complex configuration. IndexedDB achieves the same result with less infrastructure.
+
+3. **Passing URL to viewer and relying on browser cache**: The default behavior. Doesn't guarantee caching, can't work offline, and the user has no visibility or control over what's cached.

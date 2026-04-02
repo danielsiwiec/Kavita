@@ -44,6 +44,7 @@ import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {KeyBindService} from "../../../_services/key-bind.service";
 import {KeyBindTarget} from "../../../_models/preferences/preferences";
 import {Breakpoint, BreakpointService} from "../../../_services/breakpoint.service";
+import {FileCacheService} from "../../../_services/file-cache.service";
 
 const KEYBIND_TARGETS = [
   {keyBindTarget: KeyBindTarget.OpenHelp},
@@ -76,6 +77,7 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
   public readonly document = inject(DOCUMENT);
   private readonly keyBindService = inject(KeyBindService);
   protected readonly breakpointService = inject(BreakpointService);
+  private readonly fileCacheService = inject(FileCacheService);
 
   protected readonly ScrollModeType = ScrollModeType;
 
@@ -113,6 +115,11 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
    */
   maxPages: number = 1;
   bookTitle: string = '';
+
+  /**
+   * PDF source - either an ArrayBuffer (from cache or fetch) or a URL string (fallback).
+   */
+  pdfSrc: string | ArrayBuffer | undefined;
 
   zoomSetting: string | number = 'auto';
 
@@ -359,7 +366,40 @@ export class PdfReaderComponent implements OnInit, OnDestroy {
       }
       this.cdRef.markForCheck();
     });
+    this.loadPdf();
+
     setTimeout(() => this.readerService.enableWakeLock(this.container().nativeElement), 1000);
+  }
+
+  private async loadPdf(): Promise<void> {
+    const cacheKey = `pdf:${this.chapterId}`;
+
+    // Try cache first
+    try {
+      const cached = await this.fileCacheService.get(cacheKey);
+      if (cached) {
+        this.pdfSrc = await cached.arrayBuffer();
+        this.cdRef.markForCheck();
+        return;
+      }
+    } catch (e) {
+      // IndexedDB unavailable, fall through to network
+    }
+
+    // Cache miss: use URL for immediate streaming (original behavior)
+    this.pdfSrc = this.readerService.downloadPdf(this.chapterId);
+    this.cdRef.markForCheck();
+
+    // Fetch blob in background for caching (doesn't affect current render)
+    this.readerService.downloadPdfBlob(this.chapterId).subscribe({
+      next: async (blob) => {
+        try {
+          await this.fileCacheService.put(cacheKey, blob, 'application/pdf');
+        } catch (e) {
+          // Caching failed (quota, etc.) - not fatal
+        }
+      }
+    });
   }
 
   /**
