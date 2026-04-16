@@ -42,7 +42,10 @@ public enum SeriesSortField
     /// By user rating
     /// </summary>
     UserRating = 10,
-
+    /// <summary>
+    /// Number of unread chaptersa
+    /// </summary>
+    UnreadChapterCount = 11,
 }
 
 
