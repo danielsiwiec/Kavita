@@ -2,12 +2,12 @@
   "openapi": "3.0.4",
   "info": {
     "title": "Kavita",
-    "description": "Kavita provides a set of APIs authenticated via an Auth Key passed in the `x-api-key` header. Generate an Auth Key under User Settings → Manage Auth Keys, paste it into the Authorize panel, and all Try It requests will include it. Assume all fields of a payload are required unless marked optional. Built against v0.8.9.43",
+    "description": "Kavita provides a set of APIs authenticated via an Auth Key passed in the `x-api-key` header. Generate an Auth Key under User Settings → Manage Auth Keys, paste it into the Authorize panel, and all Try It requests will include it. Assume all fields of a payload are required unless marked optional. Built against v0.8.9.44",
     "license": {
       "name": "GPL-3.0",
       "url": "https://github.com/Kareadita/Kavita/blob/develop/LICENSE"
     },
-    "version": "0.8.9.43"
+    "version": "0.8.9.44"
   },
   "servers": [
     {
@@ -23552,10 +23552,11 @@
           13,
           14,
           15,
-          16
+          16,
+          17
         ],
         "type": "integer",
-        "description": "Members:\n- `0` — Equal\n- `1` — GreaterThan\n- `2` — GreaterThanEqual\n- `3` — LessThan\n- `4` — LessThanEqual\n- `5` — Contains\n- `6` — MustContains\n- `7` — Matches\n- `8` — NotContains\n- `9` — NotEqual\n- `10` — BeginsWith\n- `11` — EndsWith\n- `12` — IsBefore\n- `13` — IsAfter\n- `14` — IsInLast\n- `15` — IsNotInLast\n- `16` — IsEmpty",
+        "description": "Members:\n- `0` — Equal\n- `1` — GreaterThan\n- `2` — GreaterThanEqual\n- `3` — LessThan\n- `4` — LessThanEqual\n- `5` — Contains\n- `6` — MustContains\n- `7` — Matches\n- `8` — NotContains\n- `9` — NotEqual\n- `10` — BeginsWith\n- `11` — EndsWith\n- `12` — IsBefore\n- `13` — IsAfter\n- `14` — IsInLast\n- `15` — IsNotInLast\n- `16` — IsEmpty\n- `17` — IsNotEmpty",
         "format": "int32",
         "x-enum-varnames": [
           "Equal",
@@ -23574,7 +23575,8 @@
           "IsAfter",
           "IsInLast",
           "IsNotInLast",
-          "IsEmpty"
+          "IsEmpty",
+          "IsNotEmpty"
         ],
         "x-enum-descriptions": [
           "Equal",
@@ -23593,7 +23595,8 @@
           "IsAfter",
           "IsInLast",
           "IsNotInLast",
-          "IsEmpty"
+          "IsEmpty",
+          "IsNotEmpty"
         ]
       },
       "FilterStatementDto": {
