@@ -13,8 +13,8 @@ using Kavita.Database.Extensions;
 using Kavita.Database.Extensions.Filters;
 using Kavita.Models.DTOs.Filtering.v2;
 using Kavita.Models.DTOs.Filtering.v2.FilterFields;
+using Kavita.Models.DTOs.Filtering.v2.Requests;
 using Kavita.Models.DTOs.Metadata.Browse;
-using Kavita.Models.DTOs.Metadata.Browse.Requests;
 using Kavita.Models.DTOs.Person;
 using Kavita.Models.DTOs.ReadingLists;
 using Kavita.Models.Entities;
@@ -538,7 +538,7 @@ public class ReadingListRepository(DataContext context, IMapper mapper) : IReadi
             .ToListAsync(ct);
     }
 
-    public async Task<PagedList<ReadingListDto>> GetBrowseReadingListDtos(int userId, BrowseReadingListFilterDto filter,
+    public async Task<PagedList<ReadingListDto>> GetBrowseReadingListDtos(int userId, ReadingListFilterDto filter,
         UserParams userParams, CancellationToken ct = default)
     {
         var ageRating = await context.AppUser.GetUserAgeRestriction(userId, ct: ct);
@@ -547,7 +547,7 @@ public class ReadingListRepository(DataContext context, IMapper mapper) : IReadi
         return await PagedList<ReadingListDto>.CreateAsync(query, userParams.PageNumber, userParams.PageSize, ct);
     }
 
-    private IQueryable<ReadingListDto> CreateFilteredReadingListQueryable(int userId, BrowseReadingListFilterDto filter,
+    private IQueryable<ReadingListDto> CreateFilteredReadingListQueryable(int userId, ReadingListFilterDto filter,
         AgeRestriction ageRating, CancellationToken ct = default)
     {
         var query = context.ReadingList

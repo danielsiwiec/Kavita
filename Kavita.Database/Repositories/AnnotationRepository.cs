@@ -14,7 +14,7 @@ using Kavita.Models.DTOs;
 using Kavita.Models.DTOs.Annotations;
 using Kavita.Models.DTOs.Filtering.v2;
 using Kavita.Models.DTOs.Filtering.v2.FilterFields;
-using Kavita.Models.DTOs.Metadata.Browse.Requests;
+using Kavita.Models.DTOs.Filtering.v2.Requests;
 using Kavita.Models.DTOs.Reader;
 using Kavita.Models.Entities.User;
 using Microsoft.EntityFrameworkCore;
@@ -72,7 +72,7 @@ public class AnnotationRepository(DataContext context, IMapper mapper) : IAnnota
             .ToListAsync(ct);
     }
 
-    public async Task<PagedList<AnnotationDto>> GetAnnotationDtos(int userId, BrowseAnnotationFilterDto filter,
+    public async Task<PagedList<AnnotationDto>> GetAnnotationDtos(int userId, AnnotationFilterDto filter,
         UserParams userParams, CancellationToken ct = default)
     {
         var query = await CreatedFilteredAnnotationQueryable(userId, filter);
@@ -99,7 +99,7 @@ public class AnnotationRepository(DataContext context, IMapper mapper) : IAnnota
 
     }
 
-    private async Task<IQueryable<AnnotationDto>> CreatedFilteredAnnotationQueryable(int userId, BrowseAnnotationFilterDto filter)
+    private async Task<IQueryable<AnnotationDto>> CreatedFilteredAnnotationQueryable(int userId, AnnotationFilterDto filter)
     {
         var allLibrariesCount = await context.Library.CountAsync();
         var userLibs = await context.Library.GetUserLibraries(userId).ToListAsync();

@@ -817,8 +817,8 @@
 
     "all-filters": {
         "title": "All Smart Filters",
-        "count": "{{count}} {{tabs.smart-filters-tab}}",
-        "create": "{{common.create}}"
+        "description": "Smart filters are saved filters that can be bound against the side nav and dashboard. You can create them for Series and Reading Lists by giving a name and using Save button.",
+        "count": "{{count}} Total Smart Filters"
     },
 
     "announcements": {
@@ -3371,6 +3371,7 @@
         "save": "{{common.save}}",
         "edit-smart-filter": "Edit {{name}}",
         "name-label": "Name",
+        "entity-type-label": "Entity Type",
         "required-field": "Smart Filters need a name",
         "filter-name-unique": "Smart Filter names must be unique",
         "no-content": "This smart filter has no results on the dashboard"
@@ -3439,6 +3440,13 @@
         "read-last": "Read Last",
         "average-rating": "Average rating",
         "file-size": "File size"
+    },
+
+    "filter-entity-type-pipe": {
+        "series": "{{tabs.series-tab}}",
+        "reading-list": "{{add-to-list-modal.reading-list-label}}",
+        "person": "Person",
+        "annotation": "Annotation"
     },
 
     "filter-comparison-pipe": {

@@ -15,6 +15,7 @@ using Kavita.Common.Helpers;
 using Kavita.Models.DTOs;
 using Kavita.Models.DTOs.Filtering;
 using Kavita.Models.DTOs.Filtering.v2;
+using Kavita.Models.DTOs.Filtering.v2.Requests;
 using Kavita.Models.DTOs.OPDS;
 using Kavita.Models.DTOs.OPDS.Requests;
 using Kavita.Models.DTOs.Person;
@@ -23,6 +24,7 @@ using Kavita.Models.DTOs.Search;
 using Kavita.Models.Entities;
 using Kavita.Models.Entities.Enums;
 using Kavita.Services.Helpers;
+using Kavita.Services.Helpers.SmartFilter;
 
 namespace Kavita.Services;
 
@@ -49,7 +51,7 @@ public class OpdsService(
     public const string AboveHalfReadingProgressIcon = "◕";
     public const string FullReadingProgressIcon = "⬤";
 
-    private readonly FilterV2Dto _filterV2Dto = new();
+    private readonly SeriesFilterV2Dto _seriesFilterV2Dto = new();
 
     public async Task<Feed> GetCatalogue(OpdsCatalogueRequest request, CancellationToken ct = default)
     {
@@ -267,7 +269,7 @@ public class OpdsService(
     {
         var userId = UnpackRequest(request, out var apiKey, out var prefix, out var baseUrl);
 
-        var wantToReadSeries = await unitOfWork.SeriesRepository.GetWantToReadDtosForUserAsync(userId, GetUserParams(request.PageNumber), _filterV2Dto, ct);
+        var wantToReadSeries = await unitOfWork.SeriesRepository.GetWantToReadDtosForUserAsync(userId, GetUserParams(request.PageNumber), _seriesFilterV2Dto, ct);
         var seriesMetadatas = await unitOfWork.SeriesRepository.GetSeriesMetadataForIdsAsync(wantToReadSeries.Select(s => s.Id), ct);
 
         var feed = CreateFeed(await localizationService.TranslateAsync(userId, "want-to-read"), $"{apiKey}/want-to-read", apiKey, prefix);
@@ -314,7 +316,7 @@ public class OpdsService(
     {
         var userId = UnpackRequest(request, out var apiKey, out var prefix, out var baseUrl);
 
-        var recentlyAdded = await unitOfWork.SeriesRepository.GetRecentlyAddedAsync(userId, GetUserParams(request.PageNumber), _filterV2Dto, ct);
+        var recentlyAdded = await unitOfWork.SeriesRepository.GetRecentlyAddedAsync(userId, GetUserParams(request.PageNumber), _seriesFilterV2Dto, ct);
         var seriesMetadatas = await unitOfWork.SeriesRepository.GetSeriesMetadataForIdsAsync(recentlyAdded.Select(s => s.Id), ct);
 
         var feed = CreateFeed(await localizationService.TranslateAsync(userId, "recently-added"), $"{apiKey}/recently-added", apiKey, prefix);
@@ -395,7 +397,7 @@ public class OpdsService(
         var feed = CreateFeed(await localizationService.TranslateAsync(userId, "smartFilters-" + filter.Id), $"{apiKey}/smart-filters/{filter.Id}/", apiKey, prefix);
         SetFeedId(feed, "smartFilters-" + filter.Id);
 
-        var decodedFilter = SmartFilterHelper.Decode(filter.Filter);
+        var decodedFilter = (SeriesFilterV2Dto) SmartFilterHelper.Decode(filter.Filter);
         var series = await unitOfWork.SeriesRepository.GetSeriesDtoForLibraryIdAsync(userId, GetUserParams(request.PageNumber),
             decodedFilter, ct: ct);
         var seriesMetadatas = await unitOfWork.SeriesRepository.GetSeriesMetadataForIdsAsync(series.Select(s => s.Id), ct);
@@ -449,10 +451,10 @@ public class OpdsService(
             throw new OpdsException(await localizationService.TranslateAsync(userId, "no-library-access"));
         }
 
-        var filter = new FilterV2Dto
+        var filter = new SeriesFilterV2Dto
         {
             Statements = [
-                new FilterStatementDto
+                new SeriesFilterStatementDto
                 {
                     Comparison = FilterComparison.Equal,
                     Field = SeriesFilterField.Libraries,

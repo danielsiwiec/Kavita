@@ -11,8 +11,8 @@ using Kavita.Common.Extensions;
 using Kavita.Common.Helpers;
 using Kavita.Models.Constants;
 using Kavita.Models.DTOs;
+using Kavita.Models.DTOs.Filtering.v2.Requests;
 using Kavita.Models.DTOs.Metadata.Browse;
-using Kavita.Models.DTOs.Metadata.Browse.Requests;
 using Kavita.Models.DTOs.Person;
 using Kavita.Models.DTOs.Recommendation;
 using Kavita.Models.DTOs.SignalR;
@@ -109,7 +109,7 @@ public class PersonController(
     /// <param name="userParams"></param>
     /// <returns></returns>
     [HttpPost("all")]
-    public async Task<ActionResult<PagedList<BrowsePersonDto>>> GetPeopleForBrowse(BrowsePersonFilterDto filter, [FromQuery] UserParams? userParams)
+    public async Task<ActionResult<PagedList<BrowsePersonDto>>> GetPeopleForBrowse(PersonFilterDto filter, [FromQuery] UserParams? userParams)
     {
         userParams ??= UserParams.Default;
 

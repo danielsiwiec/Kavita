@@ -10,7 +10,7 @@ import {HttpClient} from "@angular/common/http";
 import {TextResonse} from "../../_types/text-response";
 import {environment} from "../../../environments/environment";
 import {map, tap} from "rxjs/operators";
-import {switchMap} from "rxjs";
+import {of, switchMap} from "rxjs";
 import {allPersonFilterFields, PersonFilterField} from "../../_models/metadata/v2/person-filter-field";
 import {allPersonSortFields} from "../../_models/metadata/v2/person-sort-field";
 import {
@@ -29,6 +29,7 @@ import {
 } from "../../_models/metadata/v2/annotations-filter";
 import {allReadingListFilterFields, ReadingListFilterField} from "../../_models/metadata/v2/reading-list-filter-field";
 import {allReadingListSortFields, ReadingListSortField} from "../../_models/metadata/v2/reading-list-sort-field";
+import {FilterEntityType} from "../../_models/metadata/v2/filter-entity-type";
 
 export interface FieldOption<T extends number> {
   title: string,
@@ -50,7 +51,10 @@ export class FilterUtilitiesService {
   private readonly apiUrl = environment.apiUrl;
 
   encodeFilter(filter: FilterV2 | undefined) {
-    return this.http.post<string>(this.apiUrl + 'filter/encode', filter, TextResonse);
+    if (filter === undefined) { return of(''); }
+    const apiRoute = FilterUtilitiesService.getApiRoutePrefixForEntityType('filter/encode/', filter.entityType);
+
+    return this.http.post<string>(this.apiUrl + apiRoute, filter, TextResonse);
   }
 
   decodeFilter(encodedFilter: string) {
@@ -105,9 +109,45 @@ export class FilterUtilitiesService {
     }));
   }
 
+  public static getApiRoutePrefixForEntityType(apiRoute: string, entityType: FilterEntityType) {
+    switch (entityType) {
+      case FilterEntityType.Series:
+        apiRoute += 'series';
+        break;
+      case FilterEntityType.ReadingList:
+        apiRoute += 'reading-list';
+        break;
+      case FilterEntityType.Person:
+        apiRoute += 'person';
+        break;
+      case FilterEntityType.Annotation:
+        apiRoute += 'annotation';
+        break;
+    }
+    return apiRoute;
+  }
+
+  /** Returns the url route of a filter **/
+  public static getFilterLink(entityType: FilterEntityType, encodedFilter: string) {
+    if (encodedFilter) {
+      encodedFilter = '?' + encodedFilter;
+    }
+    switch (entityType) {
+      case FilterEntityType.Series:
+        return 'all-series' + encodedFilter;
+      case FilterEntityType.ReadingList:
+        return 'lists' + encodedFilter;
+      case FilterEntityType.Person:
+        return 'browse/people' + encodedFilter;
+      case FilterEntityType.Annotation:
+        return 'browse/annotations' + encodedFilter;
+    }
+  }
+
 
   createPersonV2Filter(): FilterV2<PersonFilterField> {
     return {
+      entityType: FilterEntityType.Person,
       combination: FilterCombination.And,
       statements: [],
       limitTo: 0,
@@ -120,6 +160,7 @@ export class FilterUtilitiesService {
 
   createReadingListV2Filter(): FilterV2<ReadingListFilterField> {
     return {
+      entityType: FilterEntityType.ReadingList,
       combination: FilterCombination.And,
       statements: [],
       limitTo: 0,

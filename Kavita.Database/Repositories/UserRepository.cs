@@ -14,6 +14,7 @@ using Kavita.Models.DTOs;
 using Kavita.Models.DTOs.Account;
 using Kavita.Models.DTOs.Dashboard;
 using Kavita.Models.DTOs.Filtering.v2;
+using Kavita.Models.DTOs.Filtering.v2.Requests;
 using Kavita.Models.DTOs.KavitaPlus.Account;
 using Kavita.Models.DTOs.Reader;
 using Kavita.Models.DTOs.Scrobbling;
@@ -364,7 +365,8 @@ public class UserRepository(DataContext context, UserManager<AppUser> userManage
                 SmartFilterEncoded = d.SmartFilter == null ? null : d.SmartFilter.Filter,
                 StreamType = d.StreamType,
                 Order = d.Order,
-                Visible = d.Visible
+                Visible = d.Visible,
+                EntityType = d.SmartFilter == null ? FilterEntityType.Series : d.SmartFilter.EntityType,
             })
             .ToListAsync(ct);
     }
@@ -400,6 +402,7 @@ public class UserRepository(DataContext context, UserManager<AppUser> userManage
                 IsProvided = d.IsProvided,
                 SmartFilterId = d.SmartFilter == null ? 0 : d.SmartFilter.Id,
                 SmartFilterEncoded = d.SmartFilter == null ? null : d.SmartFilter.Filter,
+                EntityType = d.SmartFilter == null ? FilterEntityType.Series : d.SmartFilter.EntityType,
                 LibraryId = d.LibraryId ?? 0,
                 ExternalSourceId = d.ExternalSourceId ?? 0,
                 StreamType = d.StreamType,
@@ -754,10 +757,10 @@ public class UserRepository(DataContext context, UserManager<AppUser> userManage
     /// Get all bookmarks for the user
     /// </summary>
     /// <param name="userId"></param>
-    /// <param name="filter">Only supports SeriesNameQuery</param>
+    /// <param name="seriesFilter">Only supports SeriesNameQuery</param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public async Task<IEnumerable<BookmarkDto>> GetAllBookmarkDtos(int userId, FilterV2Dto filter, CancellationToken ct = default)
+    public async Task<IEnumerable<BookmarkDto>> GetAllBookmarkDtos(int userId, SeriesFilterV2Dto seriesFilter, CancellationToken ct = default)
     {
         var query = context.AppUserBookmark
             .Where(x => x.AppUserId == userId)
@@ -771,12 +774,12 @@ public class UserRepository(DataContext context, UserManager<AppUser> userManage
                 Series = series
             });
 
-        var filterStatement = filter.Statements.FirstOrDefault(f => f.Field == SeriesFilterField.SeriesName);
+        var filterStatement = seriesFilter.Statements.FirstOrDefault(f => f.Field == SeriesFilterField.SeriesName);
         if (filterStatement == null || string.IsNullOrWhiteSpace(filterStatement.Value))
         {
             return await ApplyLimit(filterSeriesQuery
-                    .Sort(filter.SortOptions)
-                    .AsSplitQuery(), filter.LimitTo)
+                    .Sort(seriesFilter.SortOptions)
+                    .AsSplitQuery(), seriesFilter.LimitTo)
                 .ProjectTo<BookmarkDto>(mapper.ConfigurationProvider)
                 .ToListAsync(ct);
         }
@@ -830,8 +833,8 @@ public class UserRepository(DataContext context, UserManager<AppUser> userManage
         }
 
         return await ApplyLimit(filterSeriesQuery
-                .Sort(filter.SortOptions)
-                .AsSplitQuery(), filter.LimitTo)
+                .Sort(seriesFilter.SortOptions)
+                .AsSplitQuery(), seriesFilter.LimitTo)
             .ProjectTo<BookmarkDto>(mapper.ConfigurationProvider)
             .ToListAsync(ct);
     }
