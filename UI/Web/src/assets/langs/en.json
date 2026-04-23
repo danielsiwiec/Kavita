@@ -1560,9 +1560,27 @@
         "format-title": "{{metadata-filter.format-label}}",
         "length-title": "{{edit-chapter-modal.words-label}}",
         "age-rating-title": "{{metadata-fields.age-rating-title}}",
-        "folder-path-title": "Folder path",
+        "folder-path-title": "{{edit-series-modal.folder-path-title}}",
         "file-path-title": "Files",
-        "external-metadata-title": "External Metadata"
+        "external-metadata-title": "External Metadata",
+        "basic-metadata-title": "Basic Metadata",
+        "read-time-label": "Read time",
+        "pages-label": "{{edit-chapter-modal.pages-label}}",
+        "words-label": "{{edit-chapter-modal.words-label}}",
+        "added-label": "Added",
+        "updated-label": "Updated",
+        "kavita-id-label": "Kavita ID",
+        "sort-order-label": "{{edit-chapter-modal.sort-order-label}}",
+        "language-label": "Language",
+        "is-special-label": "Special",
+        "pub-status-label": "{{metadata-filter.publication-status-label}}",
+        "yes-label": "Yes",
+        "no-label": "No",
+        "file-info-title": "File info",
+        "not-set-label": "Not set",
+        "pages-count": "{{series-detail.pages-count}}",
+        "words-count": "{{series-detail.words-count}}",
+        "bytes-count": "{{num}} bytes"
     },
 
     "related-tab": {
@@ -2124,6 +2142,7 @@
         "no-results": "No matching reading lists",
         "add": "{{common.add}}",
         "sync": "Sync",
+        "sync-manual": "Sync (Manual)",
         "delete": "{{common.delete}}",
         "view-list": "View Reading List",
         "last-synced": "Last Synced: {{date}}",
@@ -2173,7 +2192,9 @@
         "volume-num": "{{common.volume-num-shorthand}}",
         "issue-num": "{{common.issue-num-shorthand}}",
         "refresh": "Refresh",
-        "wiki": "Wiki"
+        "wiki": "Wiki",
+        "promote": "{{actionable.promote}}",
+        "promote-tooltip": "{{actionable.promote-tooltip}}"
     },
 
     "manage-remap-rules-modal": {
@@ -3545,7 +3566,9 @@
         "readinglist-item-count": "{{sort-field-pipe.readinglist-item-count}}",
         "readinglist-tags": "{{metadata-fields.tags-title}}",
         "readinglist-writer": "{{person-role-pipe.writer}}",
-        "readinglist-artist": "{{person-role-pipe.artist}}"
+        "readinglist-artist": "{{person-role-pipe.artist}}",
+        "readinglist-provider": "Provider",
+        "readinglist-missing-item-count": "Missing Item Count"
     },
 
 
@@ -3801,7 +3824,9 @@
         "export-v1": "CBL v1",
         "export-v1-tooltip": "Use CBL v1 (XML)",
         "export-v2": "CBL v2",
-        "export-v2-tooltip": "Use CBL v2 (JSON)"
+        "export-v2-tooltip": "Use CBL v2 (JSON)",
+        "cbl-manager": "CBL Manager",
+        "cbl-manager-tooltip": "Manage/Sync CBLs"
     },
 
     "preferences": {
@@ -3944,7 +3969,9 @@
         "mangaBakaId-label": "MangaBaka Id",
         "hardcoverId-label": "Hardcover Id",
         "comicVineId-label": "Comic Vine Id",
-        "metronId-label": "Metron Id"
+        "metronId-label": "Metron Id",
+        "not-set-label": "Not set",
+        "isbn-label": "{{edit-chapter-modal.isbn-label}}"
     },
 
 

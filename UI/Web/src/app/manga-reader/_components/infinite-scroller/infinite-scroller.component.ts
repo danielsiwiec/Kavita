@@ -1,5 +1,6 @@
 import {AsyncPipe, DOCUMENT} from '@angular/common';
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -16,7 +17,7 @@ import {
   output,
   Renderer2,
   Signal,
-  SimpleChanges
+  SimpleChanges, viewChild
 } from '@angular/core';
 import {BehaviorSubject, fromEvent, map, Observable, of, ReplaySubject, Subject, tap} from 'rxjs';
 import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
@@ -86,7 +87,7 @@ const enum DEBUG_MODES {
     changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [AsyncPipe, TranslocoDirective, InfiniteScrollDirective, SafeStylePipe, PullToLoadComponent]
 })
-export class InfiniteScrollerComponent implements OnInit, OnChanges, OnDestroy {
+export class InfiniteScrollerComponent implements OnInit, OnChanges, OnDestroy, AfterViewInit {
   private readonly document = inject<Document>(DOCUMENT);
   private readonly mangaReaderService = inject(MangaReaderService);
   private readonly readerService = inject(ReaderService);
@@ -95,6 +96,8 @@ export class InfiniteScrollerComponent implements OnInit, OnChanges, OnDestroy {
   private readonly cdRef = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly breakpointService = inject(BreakpointService);
+
+  scrollContainer = viewChild.required<ElementRef<HTMLDivElement>>('scroller');
 
   get scrollElement(): HTMLElement {
     return this.isFullscreenMode ? this.readerElemRef.nativeElement : this.document.body;
@@ -248,6 +251,10 @@ export class InfiniteScrollerComponent implements OnInit, OnChanges, OnDestroy {
     this.intersectionObserver.disconnect();
   }
 
+  ngAfterViewInit() {
+    this.scrollContainer().nativeElement.focus();
+  }
+
   /**
    * Responsible for binding the scroll handler to the correct event. On non-fullscreen, body is correct. However, on fullscreen, we must use the reader as that is what
    * gets promoted to fullscreen.
@@ -257,8 +264,10 @@ export class InfiniteScrollerComponent implements OnInit, OnChanges, OnDestroy {
 
     // Reset any modal-induced overflow lock (this can happen when Starting Over and ngBootstrap modal hasn't completed teardown)
     if (element === this.document.body) {
-      this.document.body.style.overflow = 'auto';
-      this.document.body.classList.remove('modal-open'); // ngBootstrap adds this
+      setTimeout(() => {
+        this.document.body.style.overflow = 'auto';
+        this.document.body.classList.remove('modal-open'); // ngBootstrap adds this
+      }, 100);
     }
 
     fromEvent(element, 'scroll')
@@ -296,8 +305,6 @@ export class InfiniteScrollerComponent implements OnInit, OnChanges, OnDestroy {
       takeUntilDestroyed(this.destroyRef)
     );
 
-    // We need the injector as toSignal is only allowed in injection context
-    // https://angular.dev/guide/signals#injection-context
     this.readerSettings = toSignal(this.readerSettings$, {injector: this.injector, requireSync: true});
 
     // Automatically updates when the breakpoint changes, or when reader settings changes
@@ -311,9 +318,9 @@ export class InfiniteScrollerComponent implements OnInit, OnChanges, OnDestroy {
       return (parseInt(value) <= 0) ? '' : value + '%';
     });
 
-    //perform jump so the page stays in view
+    // perform jump so the page stays in view
     effect(() => {
-      const width = this.widthOverride(); // needs to be at the top for effect to work
+      const width = this.widthOverride();
       this.currentPageElem = this.document.querySelector('img#page-' + this.pageNum);
       if(!this.currentPageElem)
         return;

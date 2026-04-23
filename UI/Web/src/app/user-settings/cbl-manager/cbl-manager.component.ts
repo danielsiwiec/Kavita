@@ -32,7 +32,7 @@ import {TimeAgoPipe} from "../../_pipes/time-ago.pipe";
 import {AgeRatingImageComponent} from "../../_single-module/age-rating-image/age-rating-image.component";
 import {DateYearRangePipe} from "../../_pipes/date-year-range.pipe";
 import {SafeUrlPipe} from "../../_pipes/safe-url.pipe";
-import {NgbTooltip} from "@ng-bootstrap/ng-bootstrap";
+import {NgbDropdown, NgbDropdownItem, NgbDropdownMenu, NgbDropdownToggle, NgbTooltip} from "@ng-bootstrap/ng-bootstrap";
 
 @Component({
   selector: 'app-cbl-manager',
@@ -52,7 +52,11 @@ import {NgbTooltip} from "@ng-bootstrap/ng-bootstrap";
     TimeAgoPipe,
     AgeRatingImageComponent,
     SafeUrlPipe,
-    NgbTooltip
+    NgbTooltip,
+    NgbDropdown,
+    NgbDropdownItem,
+    NgbDropdownMenu,
+    NgbDropdownToggle
   ],
   templateUrl: './cbl-manager.component.html',
   styleUrl: './cbl-manager.component.scss',
@@ -185,6 +189,12 @@ export class CblManagerComponent implements OnInit {
     });
   }
 
+  manualSyncReadingList(list: ReadingList) {
+    this.cblService.importFromUrl(list.downloadUrl!).subscribe((savedFile) => {
+      this.openImportModal([savedFile]);
+    });
+  }
+
   getDateRangeLabel(rl: ReadingList) {
     if (!rl || rl.startingYear === 0) return null;
 
@@ -192,9 +202,9 @@ export class CblManagerComponent implements OnInit {
     const startMonth = rl.startingMonth > 0 ? rl.startingMonth - 1 : undefined;
     const endMonth = rl.startingMonth > 0 ? rl.endingMonth - 1 : undefined;
 
-    const startDate = startMonth !== undefined ? new Date(rl.startingYear, startMonth) : new Date(rl.startingYear);
+    const startDate = startMonth !== undefined ? new Date(rl.startingYear, startMonth) : new Date(rl.startingYear, 0);
     const endDate = rl.endingYear <= 0 ? null :
-      (endMonth !== undefined ? new Date(rl.endingYear, endMonth) : new Date(rl.endingYear));
+      (endMonth !== undefined ? new Date(rl.endingYear, endMonth) : new Date(rl.endingYear, 0));
 
     return this.dateYearRangePipe.transform(startDate, endDate, !!endMonth);
   }
