@@ -287,6 +287,59 @@ public class AccountController(UserManager<AppUser> userManager,
     }
 
     /// <summary>
+    /// Returns whether authentication is disabled on the server (controlled by the KAVITA_DISABLE_AUTH env var).
+    /// When true, clients should call <see cref="AutoLogin"/> to obtain an admin session without credentials.
+    /// </summary>
+    /// <returns></returns>
+    [AllowAnonymous]
+    [HttpGet("authentication-disabled")]
+    public ActionResult<bool> AuthenticationDisabled()
+    {
+        return Ok(Configuration.DisableAuthentication);
+    }
+
+    /// <summary>
+    /// When authentication is disabled (KAVITA_DISABLE_AUTH), logs in as the default (first-created) admin
+    /// user without credentials and returns a JWT, exactly as <see cref="Login"/> would.
+    /// </summary>
+    /// <remarks>Returns 401 when the feature is not enabled, so the endpoint is inert by default.</remarks>
+    /// <returns></returns>
+    [AllowAnonymous]
+    [HttpPost("auto-login")]
+    public async Task<ActionResult<UserDto>> AutoLogin()
+    {
+        if (!Configuration.DisableAuthentication)
+        {
+            return Unauthorized(BadCredentialsMessage);
+        }
+
+        AppUser? user;
+        try
+        {
+            user = await unitOfWork.UserRepository.GetDefaultAdminUser(
+                AppUserIncludes.UserPreferences | AppUserIncludes.AuthKeys, HttpContext.RequestAborted);
+        }
+        catch (Exception)
+        {
+            // GetDefaultAdminUser throws when no admin account exists yet
+            user = null;
+        }
+
+        if (user == null)
+        {
+            logger.LogWarning("Auto-login requested (authentication disabled) but no admin account exists");
+            return Unauthorized(BadCredentialsMessage);
+        }
+
+        var roles = await userManager.GetRolesAsync(user);
+
+        logger.LogInformation("{UserName} auto-logged in (authentication disabled) from {IpAddress}",
+            user.UserName!.Sanitize(), HttpContext.Connection.RemoteIpAddress?.ToString());
+
+        return Ok(await ConstructUserDto(user, roles, ct: HttpContext.RequestAborted));
+    }
+
+    /// <summary>
     ///
     /// </summary>
     /// <param name="user">Must include <see cref="AppUser.AuthKeys"/></param>

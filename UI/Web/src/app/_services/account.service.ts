@@ -239,6 +239,29 @@ export class AccountService {
     );
   }
 
+  /**
+   * Returns true when the server has authentication disabled (KAVITA_DISABLE_AUTH).
+   * In that mode the UI should auto-login via {@link autoLogin} and skip the login screen.
+   */
+  isAuthenticationDisabled() {
+    return this.httpClient.get<boolean>(this.baseUrl + 'account/authentication-disabled');
+  }
+
+  /**
+   * Logs in as the default admin without credentials. Only succeeds when authentication is
+   * disabled on the server; otherwise the backend responds 401.
+   */
+  autoLogin() {
+    return this.httpClient.post<User>(this.baseUrl + 'account/auto-login', {}).pipe(
+      tap((response: User) => {
+        const user = response;
+        if (user) {
+          this.setCurrentUser(user);
+        }
+      })
+    );
+  }
+
   getAccount() {
     return this.httpClient.get<User>(this.baseUrl + 'account').pipe(
       tap((response: User) => {

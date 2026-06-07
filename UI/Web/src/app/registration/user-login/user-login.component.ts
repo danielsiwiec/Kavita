@@ -62,6 +62,15 @@ export class UserLoginComponent implements OnInit {
    */
   forceShowPasswordLogin = signal(false);
   oidcConfig = signal<OidcPublicConfig | undefined>(undefined);
+  /**
+   * True when the server has authentication disabled (KAVITA_DISABLE_AUTH). The login screen is
+   * skipped in favour of auto-login as admin.
+   */
+  authDisabled = signal(false);
+  /**
+   * Guards against firing auto-login more than once across effect re-runs.
+   */
+  private autoLoginTriggered = false;
 
   /**
    * Display the login form
@@ -71,6 +80,9 @@ export class UserLoginComponent implements OnInit {
     const config = this.oidcConfig();
     const force = this.forceShowPasswordLogin();
     if (force) return true;
+
+    // While auth is disabled we auto-login, so hide the form (unless skipAutoLogin was requested)
+    if (this.authDisabled() && !this.skipAutoLogin()) return false;
 
     return loaded && config && !(config.enabled && config.disablePasswordAuthentication);
   });
@@ -98,11 +110,29 @@ export class UserLoginComponent implements OnInit {
       this.cdRef.markForCheck();
     });
 
+    // Auto-login as admin when authentication is disabled server-side (unless skipAutoLogin requested)
+    effect(() => {
+      const disabled = this.authDisabled();
+      const skipAutoLogin = this.skipAutoLogin();
+      if (!disabled || skipAutoLogin === undefined || skipAutoLogin) return;
+      if (this.autoLoginTriggered || this.accountService.currentUser()) return;
+
+      this.autoLoginTriggered = true;
+      this.accountService.autoLogin().subscribe({
+        next: () => this.navService.handleLogin(),
+        error: () => { this.autoLoginTriggered = false; }
+      });
+    });
+
   }
 
   ngOnInit(): void {
     this.settingsService.getPublicOidcConfig().subscribe(config => {
       this.oidcConfig.set(config);
+    });
+
+    this.accountService.isAuthenticationDisabled().subscribe(disabled => {
+      this.authDisabled.set(disabled);
     });
 
     this.memberService.adminExists().subscribe(adminExists => {

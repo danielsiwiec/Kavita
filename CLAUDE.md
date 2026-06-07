@@ -508,3 +508,91 @@ The viewer **must** start rendering immediately when a PDF is opened - the user 
 2. **Service Worker + Cache API**: Would require adding `@angular/service-worker` and `ngsw-config.json` - a much larger change with complex configuration. IndexedDB achieves the same result with less infrastructure.
 
 3. **Passing URL to viewer and relying on browser cache**: The default behavior. Doesn't guarantee caching, can't work offline, and the user has no visibility or control over what's cached.
+
+---
+
+### Disable Authentication (Auto-Login)
+
+**Files Modified:**
+- `Kavita.Common/Configuration.cs`
+- `Kavita.Server/Controllers/AccountController.cs`
+- `UI/Web/src/app/_services/account.service.ts`
+- `UI/Web/src/main.ts`
+- `UI/Web/src/app/registration/user-login/user-login.component.ts`
+
+**Purpose:** Allows running Kavita without a login screen for trusted single-user / LAN deployments. Controlled by the `KAVITA_DISABLE_AUTH` environment variable. When enabled, the UI auto-logs in as the default admin and never shows the login page.
+
+**Dependencies:** None (uses the existing JWT auth system).
+
+---
+
+#### How to Enable
+
+Set the env var on the container (e.g. in the `arr` compose stack's `kavita` service):
+
+```yaml
+environment:
+  - KAVITA_DISABLE_AUTH=true   # also accepts "1"
+```
+
+It is **off** unless the variable is `true`/`1`. Leaving it unset preserves stock behavior.
+
+> ⚠️ **Security:** When enabled, anyone who can reach the server gets full admin access without credentials. Only use on a trusted network or behind another auth layer.
+
+---
+
+#### Design: Auto-Login (not middleware bypass)
+
+The feature works **with** the existing JWT system rather than bypassing `[Authorize]`. When enabled, the server issues a real JWT for the default admin on request. This keeps every `User.GetUserId()` / role check / `CurrentUser` lookup working unchanged — there is no anonymous code path through authorized endpoints.
+
+**Why not bypass the authentication middleware?** Allowing anonymous access to `[Authorize]` endpoints would leave the entire codebase assuming a populated user context (`UserId`, roles, preferences) that wouldn't exist, causing null-refs and subtle breakage. Auto-login sidesteps all of that.
+
+---
+
+#### Backend
+
+**`Configuration.cs`** - env-var-only flag (never written to `appsettings.json`):
+```csharp
+public static bool DisableAuthentication => GetDisableAuthentication();
+
+private static bool GetDisableAuthentication()
+{
+    var value = Environment.GetEnvironmentVariable("KAVITA_DISABLE_AUTH");
+    if (string.IsNullOrWhiteSpace(value)) return false;
+    value = value.Trim();
+    return value.Equals("true", StringComparison.OrdinalIgnoreCase) || value == "1";
+}
+```
+
+**`AccountController.cs`** - two `[AllowAnonymous]` endpoints:
+- `GET account/authentication-disabled` → `bool` - lets the UI know whether to auto-login.
+- `POST account/auto-login` → `UserDto` - gated by `Configuration.DisableAuthentication` (returns 401 when off, so it is inert by default). Fetches the first-created admin via `unitOfWork.UserRepository.GetDefaultAdminUser(...)` and returns tokens through the existing `ConstructUserDto(...)` helper - identical shape to `Login`.
+
+`GetDefaultAdminUser` uses `FirstAsync` and **throws** if no admin exists, so the call is wrapped in try/catch and returns 401 when there is no admin yet.
+
+---
+
+#### Frontend
+
+**`account.service.ts`** - `isAuthenticationDisabled()` (GET flag) and `autoLogin()` (POST, calls `setCurrentUser` on success - same as `login()`).
+
+**`main.ts` (`bootstrapUser`, APP_INITIALIZER)** - after the OIDC/refresh chain, if there is still no session, check the flag and auto-login. This runs before the app renders, so the login page never flashes on normal loads:
+```typescript
+switchMap(() => {
+  if (accountService.currentUser()) return of(null);
+  return accountService.isAuthenticationDisabled().pipe(
+    switchMap(disabled => disabled ? accountService.autoLogin() : of(null)),
+    catchError(() => of(null))
+  );
+}),
+```
+
+**`user-login.component.ts`** - covers the case where the login page is reached anyway (e.g. after a token-expiry logout): an `effect` triggers `autoLogin()` when `authDisabled()` is true and `skipAutoLogin` is not set, guarded by `autoLoginTriggered` to avoid duplicate calls. `showPasswordLogin` hides the form while auto-login is in flight. `?skipAutoLogin=true` still lets an admin reach the password form manually.
+
+---
+
+#### Why Not These Approaches
+
+1. **Bypassing JWT middleware / `[AllowAnonymous]` everywhere:** Breaks the populated-user-context assumption throughout the backend (see Design above).
+2. **Storing the flag in `appsettings.json`/ServerSettings:** The request was specifically an env var, and an env var keeps it deployment-controlled and out of the DB/UI where a user might accidentally toggle it.
+3. **Hardcoding a fake/anonymous user client-side:** The backend still validates JWTs, so a fabricated client user would be rejected on every API call. A real admin token is required.

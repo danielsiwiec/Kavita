@@ -75,6 +75,24 @@ public static class Configuration
 
     public static bool AllowIFraming => GetAllowIFraming(GetAppSettingFilename());
 
+    /// <summary>
+    /// When true, authentication is disabled: the server auto-logs in as the default admin and the UI
+    /// skips the login screen. Controlled exclusively via the <c>KAVITA_DISABLE_AUTH</c> environment variable.
+    /// </summary>
+    /// <remarks>
+    /// Intended only for trusted, single-user / LAN deployments (or behind another auth layer). When enabled,
+    /// anyone who can reach the server gains full admin access without credentials.
+    /// </remarks>
+    public static bool DisableAuthentication => GetDisableAuthentication();
+
+    private static bool GetDisableAuthentication()
+    {
+        var value = Environment.GetEnvironmentVariable("KAVITA_DISABLE_AUTH");
+        if (string.IsNullOrWhiteSpace(value)) return false;
+        value = value.Trim();
+        return value.Equals("true", StringComparison.OrdinalIgnoreCase) || value == "1";
+    }
+
     private static string GetAppSettingFilename()
     {
         if (!string.IsNullOrEmpty(AppSettingsFilename))

@@ -145,6 +145,14 @@ function bootstrapUser() {
       return accountService.refreshAccount();
     }),
     catchError(() => of(null)),
+    switchMap(() => {
+      // No existing session: if the server has authentication disabled, auto-login as admin
+      if (accountService.currentUser()) return of(null);
+      return accountService.isAuthenticationDisabled().pipe(
+        switchMap(disabled => disabled ? accountService.autoLogin() : of(null)),
+        catchError(() => of(null))
+      );
+    }),
     switchMap(() => loadUserLocale(transloco, accountService)),
     switchMap(() => {
       const user = accountService.currentUser();
